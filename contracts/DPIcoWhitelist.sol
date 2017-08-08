@@ -18,7 +18,11 @@ contract DPIcoWhitelist {
 
   function DPIcoWhitelist() {
     admin = msg.sender;
-    isOn = true;
+    isOn = false;
+  }
+
+  function signUpOn() constant returns (bool) {
+    return isOn;
   }
 
   function setSignUpOnOff(bool state) public isAdmin {
