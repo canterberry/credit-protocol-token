@@ -16,6 +16,11 @@ contract DPIcoWhitelist {
     _;
   }
 
+  modifier newAddr() {
+    if ( whitelist[msg.sender] ) revert();
+    _;
+  }
+
   function DPIcoWhitelist() {
     admin = msg.sender;
     isOn = false;
@@ -29,7 +34,7 @@ contract DPIcoWhitelist {
     isOn = state;
   }
 
-  function signUp() public signUpOpen {
+  function signUp() public signUpOpen newAddr {
     whitelist[msg.sender] = true;
     users.push(msg.sender);
   }

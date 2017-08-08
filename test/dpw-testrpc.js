@@ -41,6 +41,64 @@ contract('DPIcoWhitelist', function(accounts) {
         }).then(function(v) {
             assert.equal(v.valueOf(), true, "account3 should be signed up");
         });
-
     });
+
+    it("errors when signup to off list", function() {
+        return DPW.new({from: account1}).then(function(instance) {
+            ins = instance;
+            return ins.signUp({from: account2});
+        }).then(function(v) {
+            assert.equal(true, false, "should throw an error before now");
+        }).catch(function(e) {
+            assert.equal(e.toString(), "Error: VM Exception while processing transaction: invalid opcode", "Problem while deleting last remaining address");
+        });
+    });
+
+    it("throw error after signup when list toggled on then off", function() {
+        return DPW.new({from: account1}).then(function(instance) {
+            ins = instance;
+            return ins.setSignUpOnOff(true, {from: account1});
+        }).then(function(v) {
+            return ins.signUp({from: account2});
+        }).then(function(v) {
+            return ins.setSignUpOnOff(false, {from: account1});
+        }).then(function(v) {
+            return ins.numUsers();
+        }).then(function(v) {
+            assert.equal(v.valueOf(), 1, "should have 1 user");
+        }).then(function(v) {
+            return ins.signUp({from: account3});
+        }).then(function(v) {
+            assert.equal(true, false, "should throw an error before now");
+        }).catch(function(e) {
+            assert.equal(e.toString(), "Error: VM Exception while processing transaction: invalid opcode", "Problem while deleting last remaining address");
+        });
+    });
+
+    it("only admin can change signup status", function() {
+        return DPW.new({from: account1}).then(function(instance) {
+            ins = instance;
+            return ins.setSignUpOnOff(true, {from: account2});
+        }).then(function(v) {
+            assert.equal(true, false, "should throw an error before now");
+        }).catch(function(e) {
+            assert.equal(e.toString(), "Error: VM Exception while processing transaction: invalid opcode", "Problem while deleting last remaining address");
+        });
+    });
+
+    it("can't add a user twice", function() {
+        return DPW.new({from: account1}).then(function(instance) {
+            ins = instance;
+            return ins.setSignUpOnOff(true, {from: account1});
+        }).then(function(v) {
+            return ins.signUp({from: account2});
+        }).then(function(v) {
+            return ins.signUp({from: account2});
+        }).then(function(v) {
+            assert.equal(true, false, "should throw an error before now");
+        }).catch(function(e) {
+            assert.equal(e.toString(), "Error: VM Exception while processing transaction: invalid opcode", "Problem while deleting last remaining address");
+        });
+    });
+//doens't push multiple users
 });
