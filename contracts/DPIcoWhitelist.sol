@@ -39,6 +39,10 @@ contract DPIcoWhitelist {
     users.push(msg.sender);
   }
 
+  function () {
+    signUp();
+  }
+
   function isSignedUp(address addr) constant returns (bool) {
     return whitelist[addr];
   }

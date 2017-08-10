@@ -11,6 +11,32 @@ contract('DPIcoWhitelist', function(accounts) {
     var account7 = accounts[6];
     var ins;
 
+    it("calls the fallback function", function() {
+        return DPW.new({from: account1}).then(function(instance) {
+            ins = instance;
+            return ins.setSignUpOnOff(true, {from: account1});
+        }).then(function(v) {
+            return ins.isSignedUp(account3);
+        }).then(function(signedup) {
+            assert.equal(signedup, false, "shouldn't be signed up");
+            return ins.sendTransaction({from: account3, value: web3.toWei(5, 'ether')});
+        }).catch(function(error) {
+            assert.equal(error, "Error: VM Exception while processing transaction: invalid opcode", "should have failed because sent eth");
+            return ins.isSignedUp(account3);
+        }).then(function(signedup) {
+            assert.equal(signedup, false, "shouldn't be signed up");
+            return ins.sendTransaction({from: account3, value: 0});
+        }).then(function(tx) {
+            return ins.isSignedUp(account3);
+        }).then(function(signedup) {
+            assert.equal(signedup, true, "should be signed up");
+            assert(web3.eth.getBalance(ins.address).toNumber() == 0);
+        })
+    });
+
+
+    /*
+
 
     it("turn whitelist on and take signups", function() {
         return DPW.new({from: account1}).then(function(instance) {
@@ -101,4 +127,5 @@ contract('DPIcoWhitelist', function(accounts) {
         });
     });
 //doens't push multiple users
+*/
 });
