@@ -35,7 +35,7 @@ contract('DPIcoWhitelist', function(accounts) {
     });
 
 
-    /*
+
 
 
     it("turn whitelist on and take signups", function() {
@@ -127,5 +127,4 @@ contract('DPIcoWhitelist', function(accounts) {
         });
     });
 //doens't push multiple users
-*/
 });
