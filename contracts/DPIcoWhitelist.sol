@@ -26,6 +26,10 @@ contract DPIcoWhitelist {
     isOn = false;
   }
 
+  function getAdmin() constant returns (address) {
+    return admin;
+  }
+
   function signUpOn() constant returns (bool) {
     return isOn;
   }
