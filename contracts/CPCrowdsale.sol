@@ -13,6 +13,14 @@ contract CPCrowdsale is CappedCrowdsale {
   {
   }
 
+  /*
+  function CPCrowdsale(uint256 _startBlock, uint256 _endBlock, uint256 _rate, address _wallet, uint _cap)
+    Crowdsale(_startBlock, _endBlock, _rate, _wallet)
+  {
+
+  }
+  */
+
   function createTokenContract() internal returns (MintableToken) {
     return new CPToken();
   }

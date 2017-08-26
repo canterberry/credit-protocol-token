@@ -1,8 +1,18 @@
 var DPW = artifacts.require("./DPIcoWhitelist.sol");
+var CPCrowdsale = artifacts.require("./CPCrowdsale.sol");
 
-module.exports = function(deployer) {
+var ethToWei = function(ethAmountStr) {
+    return new web3.BigNumber(ethAmountStr + "000000000000000000");
+};
+
+module.exports = function(deployer, network, accounts) {
     deployer.deploy(DPW);
-//  deployer.deploy(ConvertLib);
-//  deployer.link(ConvertLib, MetaCoin);
-//  deployer.deploy(MetaCoin);
+
+    const startBlock = web3.eth.blockNumber + 2;
+    const endBlock = startBlock + 300;
+    const rate = new web3.BigNumber(1000);
+    const wallet = web3.eth.accounts[0];
+    const cap = ethToWei("40000");
+    deployer.deploy(CPCrowdsale, startBlock, endBlock, rate, wallet, cap);
+
 };
