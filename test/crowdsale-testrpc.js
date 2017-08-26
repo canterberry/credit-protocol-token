@@ -34,20 +34,18 @@ contract('CPCrowdsale', function(accounts) {
         }).then(bal => {
             var balNoDec = web3.fromWei(bal.toString(10), "ether");
             assert.equal(balNoDec, (5*rate).toString(10), "balance should be 5 Eth * rate");
+            tx = {from: account2, value: web3.toWei(6, "ether")};
+            return ins.sendTransaction(tx);
+        }).catch(error => {
+            assert.equal(error, "Error: VM Exception while processing transaction: invalid opcode", "should have failed: Eth sent over cap");
         });
-        /*
-        }).catch(function(error) {
-            assert.equal(error, "Error: VM Exception while processing transaction: invalid opcode", "should have failed because sent eth");
-        //    return ins.isSignedUp(account3);
-        }).then(function(signedup) {
-            assert.equal(signedup, false, "shouldn't be signed up");
-            return ins.sendTransaction({from: account3, value: 0});
-        }).then(function(tx) {
-            return ins.isSignedUp(account3);
-        }).then(function(signedup) {
-            assert.equal(signedup, true, "should be signed up");
-            assert(web3.eth.getBalance(ins.address).toNumber() == 0);
-        })
-*/
+    });
+
+    it("changes the rate at each level", function() {
+        var rate1 = new web3.BigNumber(2000);
+        var rate2 = new web3.BigNumber(1500);
+        var rate3 = new web3.BigNumber(1000);
+        var cap = web3.toWei(10, "ether");
+
     });
 });
