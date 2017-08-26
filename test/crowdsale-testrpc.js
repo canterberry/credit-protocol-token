@@ -13,20 +13,19 @@ contract('CPCrowdsale', function(accounts) {
     var ins;
     var cpToken;
 
-    const startBlock = web3.eth.blockNumber + 2;
-    const endBlock = startBlock + 1000;
-    const rate = new web3.BigNumber(1000);
     const wallet = account1;
 
     it("allows eth up to the cap; can't go over cap", function() {
+        var startBlock = web3.eth.blockNumber + 2;
+        var endBlock = startBlock + 1000;
         var rate = new web3.BigNumber(1000);
         var cap = web3.toWei(10, "ether");
 
         return CPCrowdsale.new(startBlock, endBlock, rate, wallet, cap).then(instance => {
             ins = instance;
             return ins.token();
-        }).then(v => {
-            cpToken = CPToken.at(v);
+        }).then(addr => {
+            cpToken = CPToken.at(addr);
             var tx = {from: account2, value: web3.toWei(5, "ether")};
             return ins.sendTransaction(tx);
         }).then(v => {
@@ -41,11 +40,23 @@ contract('CPCrowdsale', function(accounts) {
         });
     });
 
-    it("changes the rate at each level", function() {
+    it("changes the rate at each level of Eth", function() {
         var rate1 = new web3.BigNumber(2000);
         var rate2 = new web3.BigNumber(1500);
         var rate3 = new web3.BigNumber(1000);
+        var level1 = web3.toWei(2, "ether");
+        var level2 = web3.toWei(4, "ether");
+        var level3 = web3.toWei(7, "ether");
+
+        var startBlock = web3.eth.blockNumber + 2;
+        var endBlock = startBlock + 1000;
         var cap = web3.toWei(10, "ether");
 
+        return CPCrowdsale.new(startBlock, endBlock, rate1, wallet, cap).then(instance => {
+//            ins = instance;
+  //          return ins.token();
+//        }).then(addr => {
+//            cpToken = CPToken.at(addr);
+        });
     });
 });
