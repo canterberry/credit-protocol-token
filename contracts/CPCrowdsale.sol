@@ -1,21 +1,21 @@
 pragma solidity ^0.4.13;
 
 import './CPToken.sol';
+import './AbstractWhitelist.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 
-
 contract CPCrowdsale is CappedCrowdsale {
 
+  AbstractWhitelist aw;
   //refer to weiRaised in the parent to check what level we're at
   uint public currLevel = 0;
 
-  uint public numDevTokens = 5; //change this to a number that lets dev wallet get tokens
-
-  function CPCrowdsale(uint256 _startBlock, uint256 _endBlock, uint256 _rate, address _wallet, uint _cap)
+  function CPCrowdsale(uint256 _startBlock, uint256 _endBlock, uint256 _rate, address _wallet, uint _cap, address whitelistContract, uint numDevTokens)
     CappedCrowdsale(_cap)
     Crowdsale(_startBlock, _endBlock, _rate, _wallet)
   {
+    aw = AbstractWhitelist(whitelistContract);
     token.mint(_wallet, numDevTokens); //distribute agreed amount of tokens to devs
   }
 

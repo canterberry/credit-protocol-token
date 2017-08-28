@@ -13,6 +13,7 @@ module.exports = function(deployer, network, accounts) {
     const rate = new web3.BigNumber(1000);
     const wallet = web3.eth.accounts[0];
     const cap = web3.toWei(40000, "ether");
-    deployer.deploy(CPCrowdsale, startBlock, endBlock, rate, wallet, cap);
+    const numDevTokens = 1000000;
+    deployer.deploy(CPCrowdsale, startBlock, endBlock, rate, wallet, cap, "0x0", numDevTokens);
 
 };
