@@ -8,6 +8,9 @@ import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 contract CPCrowdsale is CappedCrowdsale {
   using SafeMath for uint256;
 
+  uint256 constant numDevTokens     = 10;
+  uint256 constant numPresaleTokens = 10;
+
   uint256[] public tierRates;
   uint256[] public tierAmountCaps;
   uint256 public currTier = 0;
@@ -17,15 +20,17 @@ contract CPCrowdsale is CappedCrowdsale {
   uint256 whitelistEndTime;
   uint256 maxWhitelistPurchaseWei;
 
-  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _rate, address _wallet, uint _cap, address whitelistContract, uint numDevTokens)
+  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _rate, address _wallet, uint _cap, address whitelistContract)
     CappedCrowdsale(_cap)
     Crowdsale(_startTime, _endTime, _rate, _wallet)
   {
+    /*
     aw = AbstractWhitelist(whitelistContract);
     maxWhitelistPurchaseWei = (_cap * (1 ether)).div(aw.numUsers());
     whitelistEndTime = _whitelistEndTime;
     token.mint(_wallet, numDevTokens); //distribute agreed amount of tokens to devs
     initTiers();
+    */
   }
 
   function createTokenContract() internal returns (MintableToken) {
@@ -34,7 +39,7 @@ contract CPCrowdsale is CappedCrowdsale {
 
   //this is a bit dirty and hard-coded, but that's safer in this case
   function initTiers() {
-    require ( (45000 ether) < cap );
+    require ( (45000 ether) == cap );
     tierAmountCaps.push(5000 ether);
     tierRates.push(1500);
     tierAmountCaps.push(10000 ether);
