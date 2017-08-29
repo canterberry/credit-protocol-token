@@ -54,7 +54,6 @@ contract CPCrowdsale is CappedCrowdsale {
     tierRates.push(1050);
   }
 
-  /*
   function buyTokens(address beneficiary) payable {
     uint256 weiAmount = msg.value;
 
@@ -119,7 +118,7 @@ contract CPCrowdsale is CappedCrowdsale {
       currTier = currTier.add(1);
     }
   }
-  */
+
 }
 
 /* todo:
@@ -136,13 +135,6 @@ maxEth per purchase for whitelist = _cap/numUsers()
 7. Mint tokens up to the amount of Eth remaining, and give to devs at the end
 
 
-if (weiRaised + purchaseAmountWei) > tierAmount[currTier]
-
-while (amountToSpend > 0)
-add amount spent up to tier
-amountToSpend = amountToSpend - (tierAmount[currTier] - weiRaised)
-increment tier
-
-tierAmount - (weiRaised + purchaseAmountWei)
+how to find how many
 
  */
