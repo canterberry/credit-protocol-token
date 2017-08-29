@@ -13,7 +13,15 @@ module.exports = function(deployer, network, accounts) {
     const wallet = web3.eth.accounts[0];
     const cap = web3.toWei(45000, "ether");
 
-    deployer.deploy(DPW).then(function() {
+    var whitelist;
+    deployer.deploy(DPW, {from: web3.eth.accounts[0]}).then(function() {
+        return DPW.deployed();
+    }).then(dpInst => {
+        whitelist = dpInst;
+        return whitelist.setSignUpOnOff(true, {from: web3.eth.accounts[0]});
+    }).then(v => {
+        return whitelist.signUp({from: web3.eth.accounts[1]});
+    }).then(v => {
         return deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, rate, wallet, cap, DPW.address);
     });
 
