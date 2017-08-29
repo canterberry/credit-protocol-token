@@ -92,6 +92,10 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     return ( now <= whitelistEndTime );
   }
 
+  /**
+   * @dev Calculates how many tokens a given amount of wei can buy
+   * Takes into account tiers of purchase bonus
+   */
   function calculateTokens(uint256 amountWei) constant returns (uint256) {
     uint256 tmpTokens = 0;
     uint256 tmpAmountWei = amountWei;
