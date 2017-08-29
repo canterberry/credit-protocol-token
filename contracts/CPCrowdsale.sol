@@ -121,6 +121,18 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     }
   }
 
+  /**
+   * @dev Overriden to add finalization logic.
+   * Mints remaining tokens to dev wallet
+   */
+  function finalization() internal {
+    if ( cap <= weiRaised ) return;
+    uint256 remainingWei = cap.sub(weiRaised);
+    uint256 remainingDevTokens = calculateTokens(remainingWei);
+    token.mint(wallet, remainingDevTokens);
+    super.finalization();
+  }
+
 }
 
 /* todo:
@@ -135,10 +147,5 @@ maxEth per purchase for whitelist = _cap/numUsers()
 5. See how much Eth is left to sell
 6. Sell for 25 days or until all tokens sold
 7. Mint tokens up to the amount of Eth remaining, and give to devs at the end
-
-
-how to find how many coins devs get at the end?
--use finalization
--see how much Eth is left
 
  */

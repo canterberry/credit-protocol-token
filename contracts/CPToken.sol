@@ -5,5 +5,5 @@ import 'zeppelin-solidity/contracts/token/MintableToken.sol';
 contract CPToken is MintableToken {
   string public name = "CREDIT PROTOCOL TOKEN";
   string public symbol = "CPT";
-  uint256 public decimals = 0;
+  uint256 public decimals = 18;
 }
