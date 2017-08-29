@@ -137,9 +137,10 @@
     "1504034270156": {
       "links": {},
       "events": {},
-      "updated_at": 1504034781679
+      "updated_at": 1504035065698,
+      "address": "0x06dabda610a788a1ad05d7aaf109888bb0f8d80a"
     }
   },
   "schema_version": "0.0.5",
-  "updated_at": 1504034781679
+  "updated_at": 1504035065698
 }

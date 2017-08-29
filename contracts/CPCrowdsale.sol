@@ -8,21 +8,19 @@ import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 contract CPCrowdsale is CappedCrowdsale {
   using SafeMath for uint256;
 
-  /*
   uint256 constant numDevTokens     = 10;
   uint256 constant numPresaleTokens = 10;
 
   uint256[] public tierRates;
   uint256[] public tierAmountCaps;
-  uint256 public currTier;
+  uint256   public currTier;
 
   AbstractWhitelist aw;
   mapping ( address => bool ) hasPurchased; //has whitelist address purchased already
   uint256 whitelistEndTime;
   uint256 maxWhitelistPurchaseWei;
-  */
 
-  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _rate, address _wallet, uint256 _cap) //, address _whitelistContract)
+  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _rate, address _wallet, uint256 _cap, address _whitelistContract)
     CappedCrowdsale(_cap)
     Crowdsale(_startTime, _endTime, _rate, _wallet)
   {
