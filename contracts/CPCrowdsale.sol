@@ -15,14 +15,14 @@ contract CPCrowdsale is CappedCrowdsale {
   AbstractWhitelist aw;
   mapping ( address => bool ) hasPurchased; //has whitelist address purchased already
   uint256 whitelistEndTime;
-  uint256 maxWeiPurchase;
+  uint256 maxWhitelistPurchaseWei;
 
-  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _rate, address _wallet, uint _cap, uint256 _whitelistEndTime, address whitelistContract, uint numDevTokens)
+  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _rate, address _wallet, uint _cap, address whitelistContract, uint numDevTokens)
     CappedCrowdsale(_cap)
     Crowdsale(_startTime, _endTime, _rate, _wallet)
   {
     aw = AbstractWhitelist(whitelistContract);
-    maxWeiPurchase = (_cap * (1 ether)).div(aw.numUsers());
+    maxWhitelistPurchaseWei = (_cap * (1 ether)).div(aw.numUsers());
     whitelistEndTime = _whitelistEndTime;
     token.mint(_wallet, numDevTokens); //distribute agreed amount of tokens to devs
     initTiers();
@@ -32,7 +32,9 @@ contract CPCrowdsale is CappedCrowdsale {
     return new CPToken();
   }
 
+  //this is a bit dirty and hard-coded, but that's safer in this case
   function initTiers() {
+    require ( (45000 ether) < cap );
     tierAmountCaps.push(5000 ether);
     tierRates.push(1500);
     tierAmountCaps.push(10000 ether);
@@ -50,37 +52,33 @@ contract CPCrowdsale is CappedCrowdsale {
   function buyTokens(address beneficiary) payable {
     uint256 weiAmount = msg.value;
 
-    require( cpValidPurchase(weiAmount) );
     require(beneficiary != 0x0);
+    require(validPurchase());
+    require(whitelistValidPurchase(beneficiary, weiAmount));
 
     //record that this address has purchased for whitelist purposes
     hasPurchased[beneficiary] = true;
 
-    // calculate token amount to be created
-    //    uint256 tokens = weiAmount.mul(rate);
+    //setTier() and calculateTokens are safe to call because validPurchase checks
+    //for the cap to be passed or not
     uint256 tokens = calculateTokens(weiAmount);
-
-    // update state
     weiRaised = weiRaised.add(weiAmount);
+    setTier(weiRaised);
 
     token.mint(beneficiary, tokens);
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
     forwardFunds();
-    //set the tier to the next level here based on weiRaised
-    //setTier(weiRaised);
   }
 
   //can't override because need to pass value
-  function cpValidPurchase(uint256 amountWei) constant returns (bool) {
-    bool valid = false;
-    //to check:
-    /*
-      -is whitelist period
-      -hasPurchased (if whitelist)
-      require( aw.isSignedUp(beneficiary) );
-     */
-    return valid && validPurchase();
+  function whitelistValidPurchase(address beneficiary, uint256 amountWei) constant returns (bool) {
+    if ( isWhitelistPeriod() ) {
+      if ( hasPurchased[beneficiary] )           return false;
+      if ( !aw.isSignedUp(beneficiary) )         return false;
+      if ( amountWei > maxWhitelistPurchaseWei ) return false;
+    }
+    return true;
   }
 
   function isWhitelistPeriod() constant returns (bool) {
