@@ -27,11 +27,10 @@ contract CPCrowdsale is CappedCrowdsale {
     aw = AbstractWhitelist(_whitelistContract);
     require ( aw.numUsers() > 0 );
     currTier = 0;
-
-    //    maxWhitelistPurchaseWei = (_cap * (1 ether)).div(aw.numUsers());
-    //    whitelistEndTime = _whitelistEndTime;
-    //    token.mint(_wallet, numDevTokens); //distribute agreed amount of tokens to devs
-//initTiers();
+    maxWhitelistPurchaseWei = (_cap * (1 ether)).div(aw.numUsers());
+    whitelistEndTime = _whitelistEndTime;
+    token.mint(_wallet, numDevTokens); //distribute agreed amount of tokens to devs
+    initTiers();
   }
 
   function createTokenContract() internal returns (MintableToken) {
