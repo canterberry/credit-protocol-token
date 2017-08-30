@@ -34,6 +34,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     initTiers();
     weiRaised = _startingWeiRaised;
     maxWhitelistPurchaseWei = (cap - weiRaised).div(aw.numUsers());
+
   }
 
   function createTokenContract() internal returns (MintableToken) {
@@ -62,7 +63,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
     require(beneficiary != 0x0);
     //FIX THE BELOW, PROBABLY RELATES TO TIME
-    require(validPurchase());
+    //    require(validPurchase());
     require(whitelistValidPurchase(beneficiary, weiAmount));
     /*
     //record that this address has purchased for whitelist purposes
