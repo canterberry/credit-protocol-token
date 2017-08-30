@@ -11,6 +11,7 @@ module.exports = function(deployer, network, accounts) {
     const whitelistEndTime = new web3.BigNumber(startTime + fiveDays);
     const rate = new web3.BigNumber(1000);
     const wallet = web3.eth.accounts[0];
+    const startingWeiRaised = web3.toWei(1296, "ether");
     const cap = web3.toWei(45000, "ether");
 
     var whitelist;
@@ -26,7 +27,7 @@ module.exports = function(deployer, network, accounts) {
     }).then(v => {
         return whitelist.signUp({from: web3.eth.accounts[3]});
     }).then(v => {
-        return deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, rate, wallet, cap, DPW.address);
+        return deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, rate, wallet, cap, DPW.address, startingWeiRaised);
     });
 
 };
