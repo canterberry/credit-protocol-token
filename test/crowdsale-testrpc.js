@@ -18,34 +18,36 @@ contract('CPCrowdsale', function(accounts) {
     const wallet = account1;
 
     it("can only buy maxPurchase during whitelist period", function() {
-        var now = Math.floor(new Date().getTime() / 1000);
-        var startTime = new web3.BigNumber(now);
-        var endTime = new web3.BigNumber(startTime + thirtyDays);
-        var whitelistEndTime = new web3.BigNumber(startTime + fiveDays);
-        var rate = new web3.BigNumber(1000);
-        var cap = web3.toWei(45000, "ether");
-        var startingWeiRaised = web3.toWei(1296, "ether");
+        web3.eth.getBlock("latest", (error, result) => {
+            var now = result.timestamp;
+            var startTime = new web3.BigNumber(now - fiveDays);
+            var endTime = new web3.BigNumber(now + thirtyDays);
+            var whitelistEndTime = new web3.BigNumber(now + fiveDays);
+            var rate = new web3.BigNumber(1000);
+            var cap = web3.toWei(45000, "ether");
+            var startingWeiRaised = web3.toWei(1296, "ether");
 
-        var maxBuy;
-        var numWhitelistUsers;
-        CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, DPW.address, startingWeiRaised).then(instance => {
-            cpSale = instance;
-            return cpSale.token();
-        }).then(addr => {
-            cpToken = CPToken.at(addr);
-            return DPW.deployed();
-        }).then(v => {
-            whitelist = v;
-            return whitelist.numUsers();
-        }).then(v => {
-            numWhitelistUsers = v.valueOf();
-            return cpSale.maxWhitelistPurchaseWei.call();
-        }).then(v => {
-            maxBuy = v.valueOf();
-            assert.equal(maxBuy, (cap-startingWeiRaised)/numWhitelistUsers, "Max whitelist purchase should be cap/numWhitelistUsers");
-//            return cpSale.buyTokens(account2, {from: account2, value: 5});
-//        }).catch(error => {
+            var maxBuy;
+            var numWhitelistUsers;
+            CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, DPW.address, startingWeiRaised).then(instance => {
+                cpSale = instance;
+                return cpSale.token();
+            }).then(addr => {
+                cpToken = CPToken.at(addr);
+                return DPW.deployed();
+            }).then(v => {
+                whitelist = v;
+                return whitelist.numUsers();
+            }).then(v => {
+                numWhitelistUsers = v.valueOf();
+                return cpSale.maxWhitelistPurchaseWei.call();
+            }).then(v => {
+                maxBuy = v.valueOf();
+                assert.equal(maxBuy, (cap-startingWeiRaised)/numWhitelistUsers, "Max whitelist purchase should be cap/numWhitelistUsers");
+                return cpSale.buyTokens(account2, {from: account2, value: web3.toWei(1, "ether")});
+                //        }).catch(error => {
   //          assert.equal(error.toString(), "Error: VM Exception while processing transaction: invalid opcode", "Shouldn't allow buy > maxBuy during whitelist period");
+            });
         });
     });
     /*

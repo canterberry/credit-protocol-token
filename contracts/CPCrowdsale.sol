@@ -61,9 +61,10 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     uint256 weiAmount = msg.value;
 
     require(beneficiary != 0x0);
-    require(validPurchase());
+    //FIX THE BELOW, PROBABLY RELATES TO TIME
+    //    require(validPurchase());
     require(whitelistValidPurchase(beneficiary, weiAmount));
-
+    /*
     //record that this address has purchased for whitelist purposes
     hasPurchased[beneficiary] = true;
 
@@ -77,6 +78,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
     forwardFunds();
+    */
   }
 
   //can't override because need to pass value
@@ -139,18 +141,3 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   }
 
 }
-
-/* todo:
-
-maxEth per purchase for whitelist = _cap/numUsers()
-
-
-1. Mint tokens to devs
-2. Mint tokens to pre-buyers
-3. Start a whitelist period
-4. End the whitelist period after 5 days
-5. See how much Eth is left to sell
-6. Sell for 25 days or until all tokens sold
-7. Mint tokens up to the amount of Eth remaining, and give to devs at the end
-
- */
