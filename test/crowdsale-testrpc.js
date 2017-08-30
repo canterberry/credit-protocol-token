@@ -42,8 +42,7 @@ contract('CPCrowdsale', function(accounts) {
             return cpSale.maxWhitelistPurchaseWei.call();
         }).then(v => {
             maxBuy = v.valueOf();
-            console.log(maxBuy);
-            assert.equal(web3.fromWei(maxBuy, "ether"), 5, "Max whitelist purchase should be cap/numUsers");
+            assert.equal(maxBuy, (cap-startingWeiRaised)/numWhitelistUsers, "Max whitelist purchase should be cap/numWhitelistUsers");
 //            return cpSale.buyTokens(account2, {from: account2, value: 5});
 //        }).catch(error => {
   //          assert.equal(error.toString(), "Error: VM Exception while processing transaction: invalid opcode", "Shouldn't allow buy > maxBuy during whitelist period");
