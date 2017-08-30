@@ -81,13 +81,6 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     */
   }
 
-  function validPurchase() internal constant returns (bool) {
-    bool withinCap = weiRaised.add(msg.value) <= cap;
-    //    bool withinPeriod = now >= startTime && now <= endTime;
-    bool nonZeroPurchase = msg.value != 0;
-    return withinCap && nonZeroPurchase;
-  }
-
   //can't override because need to pass value
   function whitelistValidPurchase(address beneficiary, uint256 amountWei) constant returns (bool) {
     if ( isWhitelistPeriod() ) {

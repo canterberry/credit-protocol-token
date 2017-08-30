@@ -68,6 +68,28 @@ contract('CPCrowdsale', function(accounts) {
         });
     });
 
+    it("*can* buy over maxPurchase *after* whitelist period", function() {
+        web3.eth.getBlock("latest", (error, result) => {
+            var now = result.timestamp;
+            var startTime = new web3.BigNumber(now + oneHour);
+            var endTime = new web3.BigNumber(now + thirtyDays);
+            var whitelistEndTime = new web3.BigNumber(now + oneHour);
+            var maxBuy;
+            CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelistAddr, startingWeiRaised).then(instance => {
+                cpSale = instance;
+                return cpSale.maxWhitelistPurchaseWei.call();
+            }).then(v => {
+                maxBuy = new web3.BigNumber(v.valueOf());
+                return cpSale.buyTokens(account2, {from: account2, value: maxBuy.plus(1)});
+            }).then(v => {
+                assert.equal(true, true, "Shouldn't block purchase after whitelist");
+            }).catch(error => {
+                assert.notEqual(error.toString(), "Error: VM Exception while processing transaction: invalid opcode", "Should allow buy > maxBuy after whitelist period");
+            });
+        });
+    });
+
+
     /*
      next test: number of tokens created
      */
