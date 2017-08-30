@@ -17,7 +17,7 @@ contract('CPCrowdsale', function(accounts) {
     const thirtyDays = 30*24*60*60;
     const wallet = account1;
 
-    it("allows eth up to the cap; can't go over cap", async function() {
+    it("max whitelist purchase is cap/numUsers", function() {
         var now = Math.floor(new Date().getTime() / 1000);
         var startTime = new web3.BigNumber(now);
         var endTime = new web3.BigNumber(startTime + thirtyDays);
@@ -25,14 +25,28 @@ contract('CPCrowdsale', function(accounts) {
         var rate = new web3.BigNumber(1000);
         var cap = web3.toWei(45000, "ether");
 
-
+        var numWhitelistUsers;
         CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, DPW.address).then(instance => {
             cpSale = instance;
             return cpSale.token();
         }).then(addr => {
             cpToken = CPToken.at(addr);
+            return DPW.deployed();
+        }).then(v => {
+            whitelist = v;
+            return whitelist.numUsers();
+        }).then(v => {
+            numWhitelistUsers = v.valueOf();
+            return cpSale.maxWhitelistPurchaseWei.call();
+        }).then(v => {
+            assert.isAtLeast(web3.fromWei(v.valueOf(), "ether"), cap/numWhitelistUsers, "Max whitelist purchase should be cap/numUsers");
+        }).then(v => {
+
         });
     });
+    /*
+     - get the max whitelist purchase, should be 45000 Eth
+     */
 
     /*
     it("changes the rate at each level of Eth", function() {

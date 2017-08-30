@@ -19,7 +19,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   AbstractWhitelist aw;
   mapping ( address => bool ) hasPurchased; //has whitelist address purchased already
   uint256 whitelistEndTime;
-  uint256 maxWhitelistPurchaseWei;
+  uint256 public maxWhitelistPurchaseWei;
 
   function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _rate, address _wallet, uint256 _cap, address _whitelistContract)
     CappedCrowdsale(_cap)

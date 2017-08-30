@@ -22,6 +22,10 @@ module.exports = function(deployer, network, accounts) {
     }).then(v => {
         return whitelist.signUp({from: web3.eth.accounts[1]});
     }).then(v => {
+        return whitelist.signUp({from: web3.eth.accounts[2]});
+    }).then(v => {
+        return whitelist.signUp({from: web3.eth.accounts[3]});
+    }).then(v => {
         return deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, rate, wallet, cap, DPW.address);
     });
 
