@@ -62,7 +62,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
     require(beneficiary != 0x0);
     //FIX THE BELOW, PROBABLY RELATES TO TIME
-    //    require(validPurchase());
+    require(validPurchase());
     require(whitelistValidPurchase(beneficiary, weiAmount));
     /*
     //record that this address has purchased for whitelist purposes

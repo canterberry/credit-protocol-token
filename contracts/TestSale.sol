@@ -1,7 +1,12 @@
 pragma solidity ^0.4.13;
 
+/*
+ * TestSale.sol
+ * simple contract used for sanity checks to the Zeppelin upgrades
+ */
+
 import './CPToken.sol';
-//import './AbstractWhitelist.sol';
+import './AbstractWhitelist.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 import 'zeppelin-solidity/contracts/crowdsale/Crowdsale.sol';
