@@ -33,7 +33,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     token.mint(_wallet, numDevTokens); //distribute agreed amount of tokens to devs
     initTiers();
     weiRaised = _startingWeiRaised;
-    maxWhitelistPurchaseWei = ((_cap * (1 ether)) - weiRaised).div(aw.numUsers());
+    maxWhitelistPurchaseWei = (cap - weiRaised).div(aw.numUsers());
   }
 
   function createTokenContract() internal returns (MintableToken) {
