@@ -30,8 +30,8 @@ module.exports = function(deployer, network, accounts) {
         }).then(v => {
             return whitelist.signUp({from: web3.eth.accounts[3]});
         }).then(v => {
-            return deployer.deploy(TestSale, startTime, endTime, rate, wallet, cap);
-//            return deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, rate, wallet, cap, DPW.address, startingWeiRaised, {from: web3.eth.accounts[0]});
+        //    return deployer.deploy(TestSale, startTime, endTime, rate, wallet, cap);
+            return deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, rate, wallet, cap, DPW.address, startingWeiRaised, {from: web3.eth.accounts[0]});
         }).catch(err => {
             console.log("got an error");
             console.log(err);
