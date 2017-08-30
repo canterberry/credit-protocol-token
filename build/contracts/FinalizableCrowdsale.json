@@ -4,19 +4,6 @@
     {
       "constant": true,
       "inputs": [],
-      "name": "endBlock",
-      "outputs": [
-        {
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "payable": false,
-      "type": "function"
-    },
-    {
-      "constant": true,
-      "inputs": [],
       "name": "rate",
       "outputs": [
         {
@@ -30,7 +17,7 @@
     {
       "constant": true,
       "inputs": [],
-      "name": "weiRaised",
+      "name": "endTime",
       "outputs": [
         {
           "name": "",
@@ -43,7 +30,7 @@
     {
       "constant": true,
       "inputs": [],
-      "name": "startBlock",
+      "name": "weiRaised",
       "outputs": [
         {
           "name": "",
@@ -69,6 +56,19 @@
         {
           "name": "",
           "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "startTime",
+      "outputs": [
+        {
+          "name": "",
+          "type": "uint256"
         }
       ],
       "payable": false,
@@ -193,5 +193,5 @@
   "unlinked_binary": "0x",
   "networks": {},
   "schema_version": "0.0.5",
-  "updated_at": 1504058122648
+  "updated_at": 1504066017150
 }

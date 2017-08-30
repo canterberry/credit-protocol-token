@@ -62,7 +62,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
     require(beneficiary != 0x0);
     //FIX THE BELOW, PROBABLY RELATES TO TIME
-    //    require(validPurchase());
+    require(validPurchase());
     require(whitelistValidPurchase(beneficiary, weiAmount));
     /*
     //record that this address has purchased for whitelist purposes
@@ -79,6 +79,13 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
     forwardFunds();
     */
+  }
+
+  function validPurchase() internal constant returns (bool) {
+    bool withinCap = weiRaised.add(msg.value) <= cap;
+    //    bool withinPeriod = now >= startTime && now <= endTime;
+    bool nonZeroPurchase = msg.value != 0;
+    return withinCap && nonZeroPurchase;
   }
 
   //can't override because need to pass value

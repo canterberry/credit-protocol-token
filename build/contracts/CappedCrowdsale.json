@@ -4,7 +4,7 @@
     {
       "constant": true,
       "inputs": [],
-      "name": "endBlock",
+      "name": "rate",
       "outputs": [
         {
           "name": "",
@@ -17,7 +17,7 @@
     {
       "constant": true,
       "inputs": [],
-      "name": "rate",
+      "name": "endTime",
       "outputs": [
         {
           "name": "",
@@ -56,11 +56,11 @@
     {
       "constant": true,
       "inputs": [],
-      "name": "startBlock",
+      "name": "wallet",
       "outputs": [
         {
           "name": "",
-          "type": "uint256"
+          "type": "address"
         }
       ],
       "payable": false,
@@ -69,11 +69,11 @@
     {
       "constant": true,
       "inputs": [],
-      "name": "wallet",
+      "name": "startTime",
       "outputs": [
         {
           "name": "",
-          "type": "address"
+          "type": "uint256"
         }
       ],
       "payable": false,
@@ -163,5 +163,5 @@
   "unlinked_binary": "0x",
   "networks": {},
   "schema_version": "0.0.5",
-  "updated_at": 1504058122648
+  "updated_at": 1504066017150
 }
