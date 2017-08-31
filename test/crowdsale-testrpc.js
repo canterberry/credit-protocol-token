@@ -4,13 +4,12 @@ var CPToken = artifacts.require("./CPToken.sol");
 
 var whitelistAddr = "0xff3202a78ca7041e76943727fedb30c0ebeae0b4";
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function delay(ms) {
-    await sleep(ms);
-}
+var delay = function(millis) {
+    var date = new Date();
+    var curDate = null;
+    do { curDate = new Date(); }
+    while(curDate - date < millis);
+};
 
 contract('CPCrowdsale', function(accounts) {
 
@@ -21,6 +20,7 @@ contract('CPCrowdsale', function(accounts) {
     var whitelist = DPW.at(whitelistAddr);
     var cpSale;
     var cpToken;
+    const deployDelay = 3;
     const rate = new web3.BigNumber(1000);
     const cap = web3.toWei(45000, "ether");
     const startingWeiRaised = web3.toWei(1296, "ether");
@@ -33,7 +33,7 @@ contract('CPCrowdsale', function(accounts) {
     it("can buy up to maxPurchase during whitelist period", function() {
         web3.eth.getBlock("latest", (error, result) => {
             var now = result.timestamp;
-            var startTime = new web3.BigNumber(now + 2);
+            var startTime = new web3.BigNumber(now + deployDelay);
             var endTime = new web3.BigNumber(now + thirtyDays);
             var whitelistEndTime = new web3.BigNumber(now + fiveDays);
             var maxBuy;
@@ -46,13 +46,13 @@ contract('CPCrowdsale', function(accounts) {
                 return whitelist.numUsers();
             }).then(v => {
                 numWhitelistUsers = v.valueOf();
+                delay(deployDelay*1000);
                 return cpSale.getNow.call();
             }).then(v => {
                 console.log(now);
                 console.log(v.valueOf());
                 return cpSale.maxWhitelistPurchaseWei.call();
             }).then(v => {
-                delay(2500);
                 maxBuy = new web3.BigNumber(v.valueOf());
                 assert.equal(maxBuy, (cap - startingWeiRaised)/numWhitelistUsers, "Max whitelist purchase should be cap/numWhitelistUsers");
 //                return cpSale.buyTokens(account2, {from: account2, value: maxBuy,
