@@ -61,13 +61,11 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     uint256 weiAmount = msg.value;
 
     require(beneficiary != 0x0);
-    //FIX THE BELOW, PROBABLY RELATES TO TIME
     require(validPurchase());
     require(whitelistValidPurchase(beneficiary, weiAmount));
-    /*
     //record that this address has purchased for whitelist purposes
     hasPurchased[beneficiary] = true;
-
+    /*
     //setTier() and calculateTokens are safe to call because validPurchase checks
     //for the cap to be passed or not
     uint256 tokens = calculateTokens(weiAmount);
@@ -79,6 +77,10 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
     forwardFunds();
     */
+  }
+
+  function getNow() constant returns (uint256) {
+    return now;
   }
 
   //can't override because need to pass value
