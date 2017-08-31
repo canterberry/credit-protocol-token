@@ -20,7 +20,7 @@ contract('CPCrowdsale', function(accounts) {
     var whitelist = DPW.at(whitelistAddr);
     var cpSale;
     var cpToken;
-    const deployDelay = 3;
+    const deployDelay = 2;
     const rate = new web3.BigNumber(1000);
     const cap = web3.toWei(45000, "ether");
     const startingWeiRaised = web3.toWei(1296, "ether");
@@ -55,8 +55,8 @@ contract('CPCrowdsale', function(accounts) {
             }).then(v => {
                 maxBuy = new web3.BigNumber(v.valueOf());
                 assert.equal(maxBuy, (cap - startingWeiRaised)/numWhitelistUsers, "Max whitelist purchase should be cap/numWhitelistUsers");
-//                return cpSale.buyTokens(account2, {from: account2, value: maxBuy,
-//                                                   gasLimit: web3.toWei(1, "ether")});
+                return cpSale.buyTokens(account2, {from: account2, value: maxBuy,
+                                                   gasLimit: web3.toWei(1, "ether")});
             });
         });
     });
