@@ -49,13 +49,14 @@ contract('CPCrowdsale', function(accounts) {
                 delay(deployDelay*1000 + 1000);
                 return cpSale.getNow.call();
             }).then(v => {
-                console.log(now);
-                console.log(v.valueOf());
                 return cpSale.maxWhitelistPurchaseWei.call();
             }).then(v => {
                 maxBuy = new web3.BigNumber(v.valueOf());
+                return cpSale.calculateTokens(web3.fromWei(3704, "ether"));
+            }).then(v => {
+                console.log(web3.fromWei(v.valueOf(), "ether"));
                 assert.equal(maxBuy, (cap - startingWeiRaised)/numWhitelistUsers, "Max whitelist purchase should be cap/numWhitelistUsers");
-                return cpSale.buyTokens(account2, {from: account2, value: maxBuy,
+                return cpSale.buyTokens(account2, {from: account2, value: web3.toWei(3704, "ether"),
                                                    gasLimit: web3.toWei(1, "ether")});
             });
         });

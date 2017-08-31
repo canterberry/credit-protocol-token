@@ -12,6 +12,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   uint256 constant numDevTokens     = 10;
   uint256 constant numPresaleTokens = 10;
 
+  uint256   public constant numTiers = 6;
   uint256[] public tierRates;
   uint256[] public tierAmountCaps;
   uint256   public currTier;
@@ -65,7 +66,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     require(whitelistValidPurchase(beneficiary, weiAmount));
     //record that this address has purchased for whitelist purposes
     hasPurchased[beneficiary] = true;
-    /*
+
     //setTier() and calculateTokens are safe to call because validPurchase checks
     //for the cap to be passed or not
     uint256 tokens = calculateTokens(weiAmount);
@@ -76,7 +77,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
     forwardFunds();
-    */
+
   }
 
   function getNow() constant returns (uint256) {
@@ -102,7 +103,9 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
    * Takes into account tiers of purchase bonus
    */
   function calculateTokens(uint256 amountWei) constant returns (uint256) {
-    uint256 tmpTokens = 0;
+
+
+    /*uint256 tmpTokens = 0;
     uint256 tmpAmountWei = amountWei;
     uint256 tmpCurrTier = currTier;
     uint256 tmpWeiRaised = weiRaised;
@@ -122,6 +125,8 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
       }
     }
     return tmpTokens;
+
+    */
   }
 
   function setTier(uint256 _weiRaised) private {
