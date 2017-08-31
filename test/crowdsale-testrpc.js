@@ -46,7 +46,7 @@ contract('CPCrowdsale', function(accounts) {
                 return whitelist.numUsers();
             }).then(v => {
                 numWhitelistUsers = v.valueOf();
-                delay(deployDelay*1000);
+                delay(deployDelay*1000 + 1000);
                 return cpSale.getNow.call();
             }).then(v => {
                 console.log(now);
