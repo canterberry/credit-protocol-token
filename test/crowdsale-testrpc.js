@@ -1,8 +1,6 @@
-var DPW = artifacts.require("./DPIcoWhitelist.sol");
+var Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 var CPCrowdsale = artifacts.require("./CPCrowdsale.sol");
 var CPToken = artifacts.require("./CPToken.sol");
-
-var whitelistAddr = "0xd5ec73eac35fc9dd6c3f440bce314779fed09f60";
 
 var delay = function(millis) {
     var date = new Date();
@@ -15,15 +13,33 @@ var eBal = function(account) {
     return web3.fromWei(web3.eth.getBalance(account), "ether");
 };
 
-contract('CPCrowdsale', function(accounts) {
+function deployWhitelist(accounts) {
+    var w;
+    Whitelist.new({from: accounts[0]}).then(instance => {
+        w = instance;
+        return w.setSignUpOnOff(true, {from: accounts[0]});
+    }).then(v => {
+        return w.signUp({from: accounts[1]});
+    }).then(v => {
+        return w.signUp({from: accounts[2]});
+    }).then(v => {
+        return w.signUp({from: accounts[3]});
+    });
+}
 
+contract('CPCrowdsale', async function(accounts) {
+    whitelist = await Whitelist.deployed();
+    console.log(whitelist.address);
+
+    var cpSale;
+    var cpToken;
+    var whitelist;
+    var w;
     var account1 = accounts[0];
     var account2 = accounts[1];
     var account3 = accounts[2];
     var account4 = accounts[3];
-    var whitelist = DPW.at(whitelistAddr);
-    var cpSale;
-    var cpToken;
+
     const deployDelay = 2;
     const rate = new web3.BigNumber(1000);
     const cap = web3.toWei(45000, "ether");
@@ -35,6 +51,8 @@ contract('CPCrowdsale', function(accounts) {
     const wallet = account1;
 
     it("calculateTokens works; buying tokens for 1 user works", function() {
+        //        var whitelist = await deployWhitelist(web3.eth.accounts);
+        //        whitelist = await Whitelist.new({from: account1});
         var buyAmt = web3.toWei(3704 + 5000 + 10000 + 10000 + 10000 + 5);
         var expectedTokens = 3704*1500 + 5000*1350 + 10000*1250 + 10000*1150 + 10000*1100 + 5*1050;
         var numTokens;
@@ -44,7 +62,7 @@ contract('CPCrowdsale', function(accounts) {
             var endTime = new web3.BigNumber(now + thirtyDays);
             var whitelistEndTime = new web3.BigNumber(now);
             var walletBalance;
-            CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelistAddr, startingWeiRaised, {from: account1}).then(instance => {
+            CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelist.address, startingWeiRaised, {from: account1}).then(instance => {
                 cpSale = instance;
                 return cpSale.token();
             }).then(addr => {
@@ -80,7 +98,7 @@ contract('CPCrowdsale', function(accounts) {
             var whitelistEndTime = new web3.BigNumber(now + fiveDays);
             var maxBuy;
             var numWhitelistUsers;
-            CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelistAddr, startingWeiRaised, {from: account1}).then(instance => {
+            CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, Whitelist.address, startingWeiRaised, {from: account1}).then(instance => {
                 cpSale = instance;
                 return cpSale.token();
             }).then(addr => {
