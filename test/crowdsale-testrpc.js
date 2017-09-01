@@ -27,14 +27,10 @@ function deployWhitelist(accounts) {
     });
 }
 
-contract('CPCrowdsale', async function(accounts) {
-    whitelist = await Whitelist.deployed();
-    console.log(whitelist.address);
-
+contract('CPCrowdsale', function(accounts) {
     var cpSale;
     var cpToken;
     var whitelist;
-    var w;
     var account1 = accounts[0];
     var account2 = accounts[1];
     var account3 = accounts[2];
@@ -62,7 +58,11 @@ contract('CPCrowdsale', async function(accounts) {
             var endTime = new web3.BigNumber(now + thirtyDays);
             var whitelistEndTime = new web3.BigNumber(now);
             var walletBalance;
-            CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelist.address, startingWeiRaised, {from: account1}).then(instance => {
+            Whitelist.deployed().then(instance => {
+                whitelist = instance;
+            }).then(v => {
+                return CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelist.address, startingWeiRaised, {from: account1});
+            }).then(instance => {
                 cpSale = instance;
                 return cpSale.token();
             }).then(addr => {
