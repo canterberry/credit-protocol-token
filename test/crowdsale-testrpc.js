@@ -2,7 +2,7 @@ var DPW = artifacts.require("./DPIcoWhitelist.sol");
 var CPCrowdsale = artifacts.require("./CPCrowdsale.sol");
 var CPToken = artifacts.require("./CPToken.sol");
 
-var whitelistAddr = "0xff3202a78ca7041e76943727fedb30c0ebeae0b4";
+var whitelistAddr = "0xd5ec73eac35fc9dd6c3f440bce314779fed09f60";
 
 var delay = function(millis) {
     var date = new Date();
@@ -31,7 +31,8 @@ contract('CPCrowdsale', function(accounts) {
     const wallet = account1;
 
     it("calculateTokens works; buying tokens for 1 user works", function() {
-        var buyAmt = web3.toWei(1000);
+        var buyAmt = web3.toWei(4);
+        var expectedTokens = 4*1500;
         var numTokens;
         web3.eth.getBlock("latest", (error, result) => {
             var now = result.timestamp;
@@ -48,16 +49,17 @@ contract('CPCrowdsale', function(accounts) {
             }).then(v => {
                 //18 decimals
                 numTokens = web3.fromWei(v.valueOf(), "ether");
-                assert.equal(numTokens, 1500000, "Tokens should mint at a rate of 1500 per Eth");
+                assert.equal(numTokens, expectedTokens, "Tokens should mint at a rate of 1500 per Eth");
                 delay(deployDelay*1000 + 1000);
 
                 walletBalance = web3.eth.getBalance(account1);
+                console.log(web3.fromWei(walletBalance, "ether").toString());
                 return cpSale.buyTokens(account2, {from: account2, value: buyAmt});
             }).then(v => {
                 return cpToken.balanceOf(account2);
             }).then(v => {
+                console.log(web3.fromWei(web3.eth.getBalance(account1), "ether").toString());
                 walletBalance = web3.fromWei(web3.eth.getBalance(account1), "ether") - web3.fromWei(walletBalance, "ether");
-                console.log(walletBalance);
                 assert.equal(web3.fromWei(v.valueOf()), numTokens, "should mint tokens at 1500/Eth rate");
                 assert.equal(walletBalance, web3.fromWei(buyAmt, "ether"), "Wallet should contain the funds used for token buy");
             });
