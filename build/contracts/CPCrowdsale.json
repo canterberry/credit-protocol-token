@@ -786,8 +786,47 @@
         }
       },
       "updated_at": 1504292179721
+    },
+    "1504302142134": {
+      "links": {},
+      "events": {
+        "0x6823b073d48d6e3a7d385eeb601452d680e74bb46afe3255a7d778f3a9b17681": {
+          "anonymous": false,
+          "inputs": [],
+          "name": "Finalized",
+          "type": "event"
+        },
+        "0x623b3804fa71d67900d064613da8f94b9617215ee90799290593e1745087ad18": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "purchaser",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "name": "beneficiary",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "value",
+              "type": "uint256"
+            },
+            {
+              "indexed": false,
+              "name": "amount",
+              "type": "uint256"
+            }
+          ],
+          "name": "TokenPurchase",
+          "type": "event"
+        }
+      },
+      "updated_at": 1504302149595
     }
   },
   "schema_version": "0.0.5",
-  "updated_at": 1504292179721
+  "updated_at": 1504302149595
 }
