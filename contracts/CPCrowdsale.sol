@@ -69,7 +69,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
     //setTier() and calculateTokens are safe to call because validPurchase checks
     //for the cap to be passed or not
-    uint256 tokens = calculateTokens(weiAmount);
+    uint256 tokens = calculateTokens(weiAmount, weiRaised, currTier, 0);
     weiRaised = weiRaised.add(weiAmount);
     setTier(weiRaised);
 
@@ -102,31 +102,15 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
    * @dev Calculates how many tokens a given amount of wei can buy
    * Takes into account tiers of purchase bonus
    */
-  function calculateTokens(uint256 amountWei) constant returns (uint256) {
-
-
-    /*uint256 tmpTokens = 0;
-    uint256 tmpAmountWei = amountWei;
-    uint256 tmpCurrTier = currTier;
-    uint256 tmpWeiRaised = weiRaised;
-    uint256 tierAmountLeft = 0;
-    while (tmpAmountWei > 0) {
-      tierAmountLeft = tierAmountCaps[currTier] - tmpWeiRaised;
-      if ( tierAmountLeft >= tmpAmountWei ) {
-        tmpTokens = tmpTokens.add(tierRates[currTier].mul(tmpAmountWei));
-        tmpAmountWei = 0;
-      }
-      //if there are more tiers left to fill with this purchase
-      else {
-        tmpTokens = tmpTokens.add(tierRates[currTier].mul(tierAmountLeft));
-        tmpAmountWei = tmpAmountWei.sub(tierAmountLeft);
-        tmpCurrTier = tmpCurrTier.add(1);
-        tmpWeiRaised = tmpWeiRaised.add(tierAmountLeft);
-      }
+  function calculateTokens(uint256 _amountWei, uint256 _weiRaised, uint256 _tier, uint256 tokenAcc) constant returns (uint256) {
+    uint256 currRate = tierRates[_tier];
+    uint256 tierAmountLeftWei = tierAmountCaps[_tier] - _weiRaised;
+    if ( _amountWei <= tierAmountLeftWei ) {
+      return tokenAcc.add(_amountWei * currRate);
     }
-    return tmpTokens;
-
-    */
+    else {
+      return calculateTokens(_amountWei.sub(tierAmountLeftWei), _weiRaised.add(tierAmountLeftWei), _tier.add(1), tokenAcc.add(tierAmountLeftWei * currRate));
+    }
   }
 
   function setTier(uint256 _weiRaised) private {
@@ -142,7 +126,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   function finalization() internal {
     if ( cap <= weiRaised ) return;
     uint256 remainingWei = cap.sub(weiRaised);
-    uint256 remainingDevTokens = calculateTokens(remainingWei);
+    uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised, currTier, 0);
     token.mint(wallet, remainingDevTokens);
     super.finalization();
   }
