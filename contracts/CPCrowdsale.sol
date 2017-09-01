@@ -77,7 +77,6 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
     forwardFunds();
-
   }
 
   function getNow() constant returns (uint256) {

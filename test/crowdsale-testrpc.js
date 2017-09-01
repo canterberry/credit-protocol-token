@@ -38,6 +38,7 @@ contract('CPCrowdsale', function(accounts) {
             var startTime = new web3.BigNumber(now + deployDelay);
             var endTime = new web3.BigNumber(now + thirtyDays);
             var whitelistEndTime = new web3.BigNumber(now + fiveDays);
+            var walletBalance;
             CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelistAddr, startingWeiRaised, {from: account1}).then(instance => {
                 cpSale = instance;
                 return cpSale.token();
@@ -49,11 +50,16 @@ contract('CPCrowdsale', function(accounts) {
                 numTokens = web3.fromWei(v.valueOf(), "ether");
                 assert.equal(numTokens, 1500000, "Tokens should mint at a rate of 1500 per Eth");
                 delay(deployDelay*1000 + 1000);
+
+                walletBalance = web3.eth.getBalance(account1);
                 return cpSale.buyTokens(account2, {from: account2, value: buyAmt});
             }).then(v => {
                 return cpToken.balanceOf(account2);
             }).then(v => {
+                walletBalance = web3.fromWei(web3.eth.getBalance(account1), "ether") - web3.fromWei(walletBalance, "ether");
+                console.log(walletBalance);
                 assert.equal(web3.fromWei(v.valueOf()), numTokens, "should mint tokens at 1500/Eth rate");
+                assert.equal(walletBalance, web3.fromWei(buyAmt, "ether"), "Wallet should contain the funds used for token buy");
             });
         });
     });
