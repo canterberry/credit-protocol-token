@@ -30,7 +30,9 @@ contract('CPCrowdsale', function(accounts) {
     const thirtyDays = 30*24*60*60;
     const wallet = account1;
 
-    it("calculateTokens works; buying tokens one user works", function() {
+    it("calculateTokens works; buying tokens for 1 user works", function() {
+        var buyAmt = web3.toWei(1000);
+        var numTokens;
         web3.eth.getBlock("latest", (error, result) => {
             var now = result.timestamp;
             var startTime = new web3.BigNumber(now + deployDelay);
@@ -41,10 +43,17 @@ contract('CPCrowdsale', function(accounts) {
                 return cpSale.token();
             }).then(addr => {
                 cpToken = CPToken.at(addr);
-                return cpSale.calculateTokens(web3.fromWei(3704, "ether"), startingWeiRaised, 0, 0);
+                return cpSale.calculateTokens(buyAmt, startingWeiRaised, 0, 0);
             }).then(v => {
-                assert.equal(v.valueOf(), web3.toWei(5556000, "ether"), "Tokens should mint at a rate of 1500");
-//                delay(deployDelay*1000 + 1000);
+                //18 decimals
+                numTokens = web3.fromWei(v.valueOf(), "ether");
+                assert.equal(numTokens, 1500000, "Tokens should mint at a rate of 1500 per Eth");
+                delay(deployDelay*1000 + 1000);
+                return cpSale.buyTokens(account2, {from: account2, value: buyAmt});
+            }).then(v => {
+                return cpToken.balanceOf(account2);
+            }).then(v => {
+                assert.equal(web3.fromWei(v.valueOf()), numTokens, "should mint tokens at 1500/Eth rate");
             });
         });
     });
