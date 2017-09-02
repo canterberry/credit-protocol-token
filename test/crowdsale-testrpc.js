@@ -20,8 +20,8 @@ var tiers = [
 
 var tokenAmount = function(startWei, ethAmt) {
     var totalEth = parseInt(web3.fromWei(startWei, "ether"));
-    var amtLeft = parseInt(ethAmt);
-    var tokens = 0;
+    var amtLeft  = parseInt(ethAmt);
+    var tokens   = 0;
     var capLeft;
     for (var i=0; i<tiers.length; i++) {
         capLeft = tiers[i].amountCap - totalEth;
@@ -107,14 +107,11 @@ contract('CPCrowdsale', function(accounts) {
                 assert.equal(numTokens, expectedTokens, "calculateTokens should work by tiers");
                 delay(deployDelay*1000 + 1000);
 
-                console.log(eBal(account2).toString());
                 walletBalance = eBal(account1);
-//                console.log(walletBalance.toString());
                 return cpSale.buyTokens(account2, {from: account2, value: buyAmt});
             }).then(v => {
                 return cpToken.balanceOf(account2);
             }).then(v => {
-                console.log(eBal(account2).toString());
                 walletBalance = eBal(account1) - walletBalance;
                 assert.equal(tokenFromDec(v.valueOf()), expectedTokens, "should mint tokens at correct tier rates");
                 assert.equal(walletBalance, web3.fromWei(buyAmt, "ether"), "Wallet should contain the funds used for token buy");
@@ -149,11 +146,11 @@ contract('CPCrowdsale', function(accounts) {
             }).then(v => {
                 maxBuy = new web3.BigNumber(v.valueOf());
                 assert.equal(maxBuy, (cap - startingWeiRaised)/numWhitelistUsers, "Max whitelist purchase should be cap/numWhitelistUsers");
-                return cpSale.buyTokens(account2, {from: account2, value: web3.toWei(3704, "ether")});
+                return cpSale.buyTokens(account2, {from: account2, value: maxBuy});
             }).then(v => {
                 return cpToken.balanceOf(account2);
             }).then(v => {
-//                assert.equal(, "User should have m");
+                assert.equal(tokenAmount(startingWeiRaised, web3.fromWei(maxBuy)), tokenFromDec(v.valueOf()), "User should have expected tokens from maxBuy");
             });
         });
     });
