@@ -9,8 +9,41 @@ var delay = function(millis) {
     while(curDate - date < millis);
 };
 
+var tiers = [
+    { amountCap: 5000,  rate: 1500 },
+    { amountCap: 10000, rate: 1350 },
+    { amountCap: 20000, rate: 1250 },
+    { amountCap: 30000, rate: 1150 },
+    { amountCap: 40000, rate: 1100 },
+    { amountCap: 45000, rate: 1050 },
+];
+
+var tokenAmount = function(startWei, ethAmt) {
+    var totalEth = parseInt(web3.fromWei(startWei, "ether"));
+    var amtLeft = parseInt(ethAmt);
+    var tokens = 0;
+    var capLeft;
+    for (var i=0; i<tiers.length; i++) {
+        capLeft = tiers[i].amountCap - totalEth;
+        if (amtLeft <= capLeft) {
+            tokens += tiers[i].rate * amtLeft;
+            break;
+        }
+        tokens += tiers[i].rate * capLeft;
+        totalEth += capLeft;
+        amtLeft  -= capLeft;
+    }
+    return tokens;
+};
+
 var eBal = function(account) {
     return web3.fromWei(web3.eth.getBalance(account), "ether");
+};
+var tokenFromDec = function(balance) {
+    return web3.fromWei(balance, "ether");
+};
+var tokenToDec = function(tokenAmt) {
+    return web3.toWei(tokenAmt, "ether");
 };
 
 function deployWhitelist(accounts) {
@@ -46,11 +79,11 @@ contract('CPCrowdsale', function(accounts) {
     const thirtyDays = 30*24*60*60;
     const wallet = account1;
 
-    it("calculateTokens works; buying tokens for 1 user works", function() {
+    it("calculateTokens works; buying tokens for 1 user works;", function() {
         //        var whitelist = await deployWhitelist(web3.eth.accounts);
         //        whitelist = await Whitelist.new({from: account1});
         var buyAmt = web3.toWei(3704 + 5000 + 10000 + 10000 + 10000 + 5);
-        var expectedTokens = 3704*1500 + 5000*1350 + 10000*1250 + 10000*1150 + 10000*1100 + 5*1050;
+        var expectedTokens = tokenAmount(startingWeiRaised, web3.fromWei(buyAmt));
         var numTokens;
         web3.eth.getBlock("latest", (error, result) => {
             var now = result.timestamp;
@@ -70,7 +103,7 @@ contract('CPCrowdsale', function(accounts) {
                 return cpSale.calculateTokens(buyAmt, startingWeiRaised, 0, 0);
             }).then(v => {
                 //18 decimals
-                numTokens = web3.fromWei(v.valueOf(), "ether");
+                numTokens = tokenFromDec(v.valueOf());
                 assert.equal(numTokens, expectedTokens, "calculateTokens should work by tiers");
                 delay(deployDelay*1000 + 1000);
 
@@ -83,13 +116,12 @@ contract('CPCrowdsale', function(accounts) {
             }).then(v => {
                 console.log(eBal(account2).toString());
                 walletBalance = eBal(account1) - walletBalance;
-                assert.equal(web3.fromWei(v.valueOf()), numTokens, "should mint tokens at correct tier rates");
+                assert.equal(tokenFromDec(v.valueOf()), expectedTokens, "should mint tokens at correct tier rates");
                 assert.equal(walletBalance, web3.fromWei(buyAmt, "ether"), "Wallet should contain the funds used for token buy");
             });
         });
     });
 
-    /*
     it("can buy up to maxPurchase during whitelist period", function() {
         web3.eth.getBlock("latest", (error, result) => {
             var now = result.timestamp;
@@ -98,7 +130,11 @@ contract('CPCrowdsale', function(accounts) {
             var whitelistEndTime = new web3.BigNumber(now + fiveDays);
             var maxBuy;
             var numWhitelistUsers;
-            CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, Whitelist.address, startingWeiRaised, {from: account1}).then(instance => {
+            Whitelist.deployed().then(instance => {
+                whitelist = instance;
+            }).then(v => {
+                return CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelist.address, startingWeiRaised, {from: account1});
+            }).then(instance => {
                 cpSale = instance;
                 return cpSale.token();
             }).then(addr => {
@@ -113,12 +149,15 @@ contract('CPCrowdsale', function(accounts) {
             }).then(v => {
                 maxBuy = new web3.BigNumber(v.valueOf());
                 assert.equal(maxBuy, (cap - startingWeiRaised)/numWhitelistUsers, "Max whitelist purchase should be cap/numWhitelistUsers");
-                return cpSale.buyTokens(account2, {from: account2, value: web3.toWei(3704, "ether"),
-                                                   gasLimit: web3.toWei(1, "ether")});
+                return cpSale.buyTokens(account2, {from: account2, value: web3.toWei(3704, "ether")});
+            }).then(v => {
+                return cpToken.balanceOf(account2);
+            }).then(v => {
+//                assert.equal(, "User should have m");
             });
         });
     });
-*/
+
     /*
     it("can't buy over maxPurchase during whitelist period", function() {
         web3.eth.getBlock("latest", (error, result) => {
@@ -127,7 +166,11 @@ contract('CPCrowdsale', function(accounts) {
             var endTime = new web3.BigNumber(now + thirtyDays);
             var whitelistEndTime = new web3.BigNumber(now + fiveDays);
             var maxBuy;
-            CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelistAddr, startingWeiRaised).then(instance => {
+            Whitelist.deployed().then(instance => {
+                whitelist = instance;
+            }).then(v => {
+            return CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelist.address, startingWeiRaised, {from: account1});
+     }).then(instance => {
                 cpSale = instance;
                 return cpSale.maxWhitelistPurchaseWei.call();
             }).then(v => {
@@ -149,7 +192,11 @@ contract('CPCrowdsale', function(accounts) {
             var endTime = new web3.BigNumber(now + thirtyDays);
             var whitelistEndTime = new web3.BigNumber(now + oneHour);
             var maxBuy;
-            CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelistAddr, startingWeiRaised).then(instance => {
+            Whitelist.deployed().then(instance => {
+                whitelist = instance;
+            }).then(v => {
+            return CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelist.address, startingWeiRaised, {from: account1});
+     }).then(instance => {
                 cpSale = instance;
                 return cpSale.maxWhitelistPurchaseWei.call();
             }).then(v => {
@@ -181,12 +228,6 @@ contract('CPCrowdsale', function(accounts) {
         var endBlock = startBlock + 1000;
         var cap = web3.toWei(10, "ether");
 
-        return CPCrowdsale.new(startBlock, endBlock, rate1, wallet, cap).then(instance => {
-
-//            ins = instance;
-  //          return ins.token();
-//        }).then(addr => {
-//            cpToken = CPToken.at(addr);
         });
     });
      */
