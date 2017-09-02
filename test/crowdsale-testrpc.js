@@ -1,3 +1,7 @@
+/*
+ notes:
+*/
+
 var Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 var CPCrowdsale = artifacts.require("./CPCrowdsale.sol");
 var CPToken = artifacts.require("./CPToken.sol");
@@ -79,46 +83,33 @@ contract('CPCrowdsale', function(accounts) {
     const thirtyDays = 30*24*60*60;
     const wallet = account1;
 
-    it("calculateTokens works; buying tokens for 1 user works;", function() {
-        //        var whitelist = await deployWhitelist(web3.eth.accounts);
-        //        whitelist = await Whitelist.new({from: account1});
-        var buyAmt = web3.toWei(3704 + 5000 + 10000 + 10000 + 10000 + 5);
-        var expectedTokens = tokenAmount(startingWeiRaised, web3.fromWei(buyAmt));
-        var numTokens;
+    it("can't buy over maxPurchase during whitelist period", function() {
         web3.eth.getBlock("latest", (error, result) => {
             var now = result.timestamp;
             var startTime = new web3.BigNumber(now + deployDelay);
             var endTime = new web3.BigNumber(now + thirtyDays);
-            var whitelistEndTime = new web3.BigNumber(now);
-            var walletBalance;
+            var whitelistEndTime = new web3.BigNumber(now + fiveDays);
+            var maxBuy;
             Whitelist.deployed().then(instance => {
                 whitelist = instance;
             }).then(v => {
                 return CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelist.address, startingWeiRaised, {from: account1});
-            }).then(instance => {
+     }).then(instance => {
                 cpSale = instance;
-                return cpSale.token();
-            }).then(addr => {
-                cpToken = CPToken.at(addr);
-                return cpSale.calculateTokens(buyAmt, startingWeiRaised, 0, 0);
+                return cpSale.maxWhitelistPurchaseWei.call();
             }).then(v => {
-                //18 decimals
-                numTokens = tokenFromDec(v.valueOf());
-                assert.equal(numTokens, expectedTokens, "calculateTokens should work by tiers");
+                maxBuy = new web3.BigNumber(v.valueOf());
                 delay(deployDelay*1000 + 1000);
-
-                walletBalance = eBal(account1);
-                return cpSale.buyTokens(account2, {from: account2, value: buyAmt});
+                return cpSale.buyTokens(account3, {from: account3, value: maxBuy.plus(1)});
             }).then(v => {
-                return cpToken.balanceOf(account2);
-            }).then(v => {
-                walletBalance = eBal(account1) - walletBalance;
-                assert.equal(tokenFromDec(v.valueOf()), expectedTokens, "should mint tokens at correct tier rates");
-                assert.equal(walletBalance, web3.fromWei(buyAmt, "ether"), "Wallet should contain the funds used for token buy");
+                assert.equal(true, false, "Shouldn't be able to buy over maxPurchase during whitelist period");
+            }).catch(error => {
+                assert.equal(error.toString(), "Error: VM Exception while processing transaction: invalid opcode", "Shouldn't allow buy > maxBuy during whitelist period");
             });
         });
     });
 
+    /*
     it("can buy up to maxPurchase during whitelist period", function() {
         web3.eth.getBlock("latest", (error, result) => {
             var now = result.timestamp;
@@ -140,8 +131,6 @@ contract('CPCrowdsale', function(accounts) {
             }).then(v => {
                 numWhitelistUsers = v.valueOf();
                 delay(deployDelay*1000 + 1000);
-                return cpSale.getNow.call();
-            }).then(v => {
                 return cpSale.maxWhitelistPurchaseWei.call();
             }).then(v => {
                 maxBuy = new web3.BigNumber(v.valueOf());
@@ -150,37 +139,51 @@ contract('CPCrowdsale', function(accounts) {
             }).then(v => {
                 return cpToken.balanceOf(account2);
             }).then(v => {
-                assert.equal(tokenAmount(startingWeiRaised, web3.fromWei(maxBuy)), tokenFromDec(v.valueOf()), "User should have expected tokens from maxBuy");
+                var expectedTokens = tokenAmount(startingWeiRaised, web3.fromWei(maxBuy));
+                assert.equal(expectedTokens, tokenFromDec(v.valueOf()), "User should have expected tokens from maxBuy");
+            });
+        });
+    });
+        */
+
+    it("calculateTokens works; buying tokens for 1 user works;", function() {
+        var buyAmt = web3.toWei(3704 + 5000 + 10000 + 10000 + 10000 + 5);
+        var expectedTokens = tokenAmount(startingWeiRaised, web3.fromWei(buyAmt));
+        var numTokens;
+        web3.eth.getBlock("latest", (error, result) => {
+            var now = result.timestamp;
+            var startTime = new web3.BigNumber(now + deployDelay);
+            var endTime = new web3.BigNumber(now + thirtyDays);
+            var whitelistEndTime = new web3.BigNumber(now);
+            var walletBalance;
+            Whitelist.deployed().then(instance => {
+                whitelist = instance;
+            }).then(v => {
+                return CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelist.address, startingWeiRaised, {from: account1});
+            }).then(instance => {
+                cpSale = instance;
+                return cpSale.token();
+            }).then(addr => {
+                cpToken = CPToken.at(addr);
+                return cpSale.calculateTokens(buyAmt, startingWeiRaised, 0, 0);
+            }).then(v => {
+                numTokens = tokenFromDec(v.valueOf());
+                assert.equal(numTokens, expectedTokens, "calculateTokens should work by tiers");
+                delay(deployDelay*1000 + 1000);
+
+                walletBalance = eBal(account1);
+                return cpSale.buyTokens(account2, {from: account2, value: buyAmt});
+            }).then(v => {
+                return cpToken.balanceOf(account2);
+            }).then(v => {
+                walletBalance = eBal(account1) - walletBalance;
+                assert.equal(tokenFromDec(v.valueOf()), expectedTokens, "should mint tokens at correct tier rates");
+                assert.equal(walletBalance, web3.fromWei(buyAmt, "ether"), "Wallet should contain the funds used for token buy");
             });
         });
     });
 
     /*
-    it("can't buy over maxPurchase during whitelist period", function() {
-        web3.eth.getBlock("latest", (error, result) => {
-            var now = result.timestamp;
-            var startTime = new web3.BigNumber(now + 2);
-            var endTime = new web3.BigNumber(now + thirtyDays);
-            var whitelistEndTime = new web3.BigNumber(now + fiveDays);
-            var maxBuy;
-            Whitelist.deployed().then(instance => {
-                whitelist = instance;
-            }).then(v => {
-            return CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelist.address, startingWeiRaised, {from: account1});
-     }).then(instance => {
-                cpSale = instance;
-                return cpSale.maxWhitelistPurchaseWei.call();
-            }).then(v => {
-                maxBuy = new web3.BigNumber(v.valueOf());
-                return cpSale.buyTokens(account2, {from: account2, value: maxBuy.plus(1)});
-            }).then(v => {
-                assert.equal(true, false, "Shouldn't be able to buy over maxPurchase");
-            }).catch(error => {
-                assert.equal(error.toString(), "Error: VM Exception while processing transaction: invalid opcode", "Shouldn't allow buy > maxBuy during whitelist period");
-            });
-        });
-    });
-
 
     it("*can* buy over maxPurchase *after* whitelist period", function() {
         web3.eth.getBlock("latest", (error, result) => {

@@ -41,7 +41,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     return new CPToken();
   }
 
-  //this is a bit dirty and hard-coded, but that's safer in this case
+  //this is a bit dirty and hard-coded, but that's safer in this case than generalizing
   function initTiers() {
     require ( (45000 ether) == cap );
     tierAmountCaps.push(5000 ether);
@@ -63,9 +63,9 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
     require(beneficiary != 0x0);
     require(validPurchase());
-    require(whitelistValidPurchase(beneficiary, weiAmount));
-    //record that this address has purchased for whitelist purposes
-    hasPurchased[beneficiary] = true;
+    require(whitelistValidPurchase(msg.sender, beneficiary, weiAmount));
+
+    if (isWhitelistPeriod()) hasPurchased[beneficiary] = true;
 
     //setTier() and calculateTokens are safe to call because validPurchase checks
     //for the cap to be passed or not
@@ -79,13 +79,10 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     forwardFunds();
   }
 
-  function getNow() constant returns (uint256) {
-    return now;
-  }
-
   //can't override because need to pass value
-  function whitelistValidPurchase(address beneficiary, uint256 amountWei) constant returns (bool) {
+  function whitelistValidPurchase(address buyer, address beneficiary, uint256 amountWei) constant returns (bool) {
     if ( isWhitelistPeriod() ) {
+      if ( buyer != beneficiary )                return false;
       if ( hasPurchased[beneficiary] )           return false;
       if ( !aw.isSignedUp(beneficiary) )         return false;
       if ( amountWei > maxWhitelistPurchaseWei ) return false;
@@ -100,6 +97,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   /**
    * @dev Calculates how many tokens a given amount of wei can buy
    * Takes into account tiers of purchase bonus
+   * Recursive, but depth is limited to the number of tiers, which is 6
    */
   function calculateTokens(uint256 _amountWei, uint256 _weiRaised, uint256 _tier, uint256 tokenAcc) constant returns (uint256) {
     uint256 currRate = tierRates[_tier];
