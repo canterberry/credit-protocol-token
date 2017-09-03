@@ -43,9 +43,10 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
         this.token = CPToken.at(await this.crowdsale.token());
     });
 
-    it("has a number of users", async function() {
-        v = await this.whitelist.numUsers();
-        v.valueOf().should.equal('3');
+    it("calculates whitelist max purchase correctly", async function() {
+        whitelistSize = new BigNumber((await this.whitelist.numUsers()).valueOf());
+        maxBuy = new BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
+        maxBuy.should.be.bignumber.equal((cap - startingWeiRaised)/whitelistSize);
     });
 });
 
@@ -126,3 +127,17 @@ async function advanceToBlock(number) {
 function latestTime() {
   return web3.eth.getBlock('latest').timestamp;
 }
+
+var e2Wei = function(n) {
+    return new web3.BigNumber(web3.toWei(n, 'ether'));
+};
+
+var eBal = function(account) {
+    return web3.fromWei(web3.eth.getBalance(account), "ether");
+};
+var tokenFromDec = function(balance) {
+    return web3.fromWei(balance, "ether");
+};
+var tokenToDec = function(tokenAmt) {
+    return web3.toWei(tokenAmt, "ether");
+};
