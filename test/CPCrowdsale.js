@@ -40,14 +40,31 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
         await this.whitelist.signUp({from: other3});
 
         this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, rate, wallet, cap, this.whitelist.address, startingWeiRaised, {from: owner});
-        this.token = CPToken.at(await this.crowdsale.token());
+        this.token  = CPToken.at(await this.crowdsale.token());
+        this.maxWhitelistBuy = new BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
 
     it("calculates whitelist max purchase correctly", async function() {
         whitelistSize = new BigNumber((await this.whitelist.numUsers()).valueOf());
-        maxBuy = new BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
-        maxBuy.should.be.bignumber.equal((cap - startingWeiRaised)/whitelistSize);
+        this.maxWhitelistBuy.should.be.bignumber.equal((cap - startingWeiRaised)/whitelistSize);
     });
+
+    it("does not allow non-beneficiary to do a whitelist buy", async function() {
+        await this.crowdsale.buyTokens(other1, {from: other2, value: this.maxWhitelistBuy}).should.be.rejectedWith(EVMThrow);
+    });
+
+    it("does not allow a buy over the max during whitelist period", async function() {
+        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.plus(1)}).should.be.rejectedWith(EVMThrow);
+    });
+
+    it("allows buy up to max during whitelist period", async function() {
+
+    });
+
+    it("allows buy over the max after whitelist period", async function() {
+
+    });
+
 });
 
 
