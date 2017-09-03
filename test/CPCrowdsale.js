@@ -45,6 +45,14 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
             await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(h.EVMThrow);
         });
 
+        it("non-owner can't pre-mint", async function() {
+            await this.crowdsale.preMint(wallet, 1, {from: wallet}).should.be.rejectedWith(h.EVMThrow);
+        });
+
+        it("owner can pre-mint", async function() {
+            await this.crowdsale.preMint(wallet, 1, {from: owner}).should.be.fulfilled;
+        });
+
         it("mints the correct number of developer tokens", async function() {
             var balance = await this.token.balanceOf(wallet);
             balance.should.be.bignumber.equal(h.tokenToDec(numDevTokensNoDec));
@@ -63,6 +71,10 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
     describe("Whitelist period", function() {
         beforeEach(async function() {
             await h.increaseTimeTo(this.startTime);
+        });
+
+        it("owner can't pre-mint after start", async function() {
+            await this.crowdsale.preMint(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
         });
 
         it("calculates whitelist max purchase correctly", async function() {
