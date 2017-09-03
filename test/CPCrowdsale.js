@@ -50,7 +50,19 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         });
 
         it("owner can pre-mint", async function() {
-            await this.crowdsale.preMint(wallet, 1, {from: owner}).should.be.fulfilled;
+            var amt1 = new h.BigNumber(5006001);
+            await this.crowdsale.preMint(wallet, amt1, {from: owner}).should.be.fulfilled;
+        });
+
+        it("pre-mint increases totalSupply correctly", async function() {
+            var amt1 = new h.BigNumber     (1);
+            var amt2 = new h.BigNumber (50000);
+            var amt3 = new h.BigNumber(910090);
+            await this.crowdsale.preMint(other1, amt1, {from: owner}).should.be.fulfilled;
+            await this.crowdsale.preMint(other1, amt2, {from: owner}).should.be.fulfilled;
+            await this.crowdsale.preMint(other2, amt3, {from: owner}).should.be.fulfilled;
+            var supply = await this.token.totalSupply();
+            supply.should.be.bignumber.equal(h.tokenToDec(amt1.plus(amt2).plus(amt3)).plus(h.tokenToDec(numDevTokensNoDec)));
         });
 
         it("mints the correct number of developer tokens", async function() {
