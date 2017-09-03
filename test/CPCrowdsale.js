@@ -42,57 +42,79 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
         this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, rate, wallet, cap, this.whitelist.address, startingWeiRaised, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
-        //START ACCEPTING PAYMENTS
-        await increaseTimeTo(this.startTime);
     });
 
-    it("calculates whitelist max purchase correctly", async function() {
-        whitelistSize = new BigNumber((await this.whitelist.numUsers()).valueOf());
-        this.maxWhitelistBuy.should.be.bignumber.equal((cap - startingWeiRaised)/whitelistSize);
+    describe("Whitelist period", function() {
+        beforeEach(async function() {
+            await increaseTimeTo(this.startTime);
+        });
+
+        it("calculates whitelist max purchase correctly", async function() {
+            whitelistSize = new BigNumber((await this.whitelist.numUsers()).valueOf());
+            this.maxWhitelistBuy.should.be.bignumber.equal((cap - startingWeiRaised)/whitelistSize);
+        });
+
+        it("does not allow non-beneficiary to do a whitelist buy", async function() {
+            await this.crowdsale.buyTokens(other1, {from: other2, value: this.maxWhitelistBuy}).should.be.rejectedWith(EVMThrow);
+        });
+
+        it("does not allow a buy over the max during whitelist period", async function() {
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.plus(1)}).should.be.rejectedWith(EVMThrow);
+        });
+
+        it("allows buy up to max during whitelist period", async function() {
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy}).should.be.fulfilled;
+        });
+
+        it("does not allow double purchasing during the whitelist period", async function() {
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(EVMThrow);
+        });
+
+        it("forwards the correct amount to the wallet", async function() {
+            (3).should.be.equal(2);
+        });
+
+        it("calculates token allocation correctly", async function() {
+            (3).should.be.equal(2);
+        });
+
+        it("allocates the correct number of tokens", async function() {
+            (3).should.be.equal(2);
+        });
     });
 
-    it("does not allow non-beneficiary to do a whitelist buy", async function() {
-        await this.crowdsale.buyTokens(other1, {from: other2, value: this.maxWhitelistBuy}).should.be.rejectedWith(EVMThrow);
-    });
+    describe("Normal buying period", function() {
+        beforeEach(async function() {
+            await increaseTimeTo(this.endWhitelistTime + duration.hours(1));
+        });
 
-    it("does not allow a buy over the max during whitelist period", async function() {
-        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.plus(1)}).should.be.rejectedWith(EVMThrow);
-    });
+        it("allows buy over the max", async function() {
+            await increaseTimeTo(this.whitelistEndTime + duration.hours(1));
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.plus(1)}).should.be.fulfilled;
+        });
 
-    it("allows buy up to max during whitelist period", async function() {
-        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy}).should.be.fulfilled;
-    });
+        it("allows double purchasing", async function() {
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(EVMThrow);
+        });
 
-    it("does not allow double purchasing during the whitelist period", async function() {
-        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
-        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(EVMThrow);
-    });
+        it("allows non-beneficiary to buy for beneficiary", async function() {
+            await increaseTimeTo(this.whitelistEndTime + duration.hours(1));
+            await this.crowdsale.buyTokens(other1, {from: other2, value: e2Wei(1)}).should.be.fulfilled;
+        });
 
-    it("allows buy over the max after whitelist period", async function() {
-        await increaseTimeTo(this.whitelistEndTime + duration.hours(1));
-        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.plus(1)}).should.be.fulfilled;
-    });
+        it("forwards the correct amount to the wallet", async function() {
+            (3).should.be.equal(2);
+        });
 
-    it("allows double purchasing after the whitelist period", async function() {
-        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
-        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(EVMThrow);
-    });
+        it("calculates token allocation correctly", async function() {
+            (3).should.be.equal(2);
+        });
 
-    it("allows non-beneficiary to buy for beneficiary after whitelist period", async function() {
-        await increaseTimeTo(this.whitelistEndTime + duration.hours(1));
-        await this.crowdsale.buyTokens(other1, {from: other2, value: e2Wei(1)}).should.be.fulfilled;
-    });
-
-    it("forwards the correct amount to the wallet", async function() {
-        (3).should.be.equal(2);
-    });
-
-    it("calculates token allocation correctly", async function() {
-        (3).should.be.equal(2);
-    });
-
-    it("allocates the correct number of tokens", async function() {
-        (3).should.be.equal(2);
+        it("allocates the correct number of tokens", async function() {
+            (3).should.be.equal(2);
+        });
     });
 });
 
