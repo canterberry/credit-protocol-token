@@ -9,8 +9,7 @@ import 'zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol';
 contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   using SafeMath for uint256;
 
-  uint256 constant numDevTokens     = 10;
-  uint256 constant numPresaleTokens = 10;
+  uint256 public numDevTokensDec;
 
   uint256   public constant numTiers = 6;
   uint256[] public tierRates;
@@ -22,16 +21,18 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   uint256 whitelistEndTime;
   uint256 public maxWhitelistPurchaseWei;
 
-  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _rate, address _wallet, uint256 _cap, address _whitelistContract, uint256 _startingWeiRaised)
+  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, address _wallet, uint256 _cap, address _whitelistContract, uint256 _startingWeiRaised, uint256 _numDevTokensNoDec)
     CappedCrowdsale(_cap)
     FinalizableCrowdsale()
-    Crowdsale(_startTime, _endTime, _rate, _wallet)
+    Crowdsale(_startTime, _endTime, 1, _wallet)
   {
+    //use an 18 decimal conversion
+    numDevTokensDec = _numDevTokensNoDec * (10 ** 18);
     aw = AbstractWhitelist(_whitelistContract);
     require ( aw.numUsers() > 0 );
     currTier = 0;
     whitelistEndTime = _whitelistEndTime;
-    token.mint(_wallet, numDevTokens); //distribute agreed amount of tokens to devs
+    token.mint(_wallet, numDevTokensDec); //distribute agreed amount of tokens to devs
     initTiers();
     weiRaised = _startingWeiRaised;
     maxWhitelistPurchaseWei = (cap - weiRaised).div(aw.numUsers());

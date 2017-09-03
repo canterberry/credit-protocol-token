@@ -18,7 +18,7 @@ const CPToken = artifacts.require("./CPToken.sol");
 const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
 contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
-    const rate = new BigNumber(1000); //rate not actually used, uses tiers
+    const numDevTokensNoDec     = new BigNumber(10000000); //10M
     const startingWeiRaised = toWei(1296, "ether");
     const cap = toWei(45000, "ether");
 
@@ -38,7 +38,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         await this.whitelist.signUp({from: other1});
         await this.whitelist.signUp({from: other2});
 
-        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, rate, wallet, cap, this.whitelist.address, startingWeiRaised, {from: owner});
+        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, wallet, cap, this.whitelist.address, startingWeiRaised, numDevTokensNoDec, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
@@ -129,6 +129,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
     });
 });
 
+//TODO: do finalization
 
 /* helpers */
 // Increases testrpc time by the passed duration in seconds
