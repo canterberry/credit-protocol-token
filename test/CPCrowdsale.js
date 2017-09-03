@@ -46,6 +46,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         this.maxWhitelistBuy = new BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
 
+    /*
     describe("Before contract starts", function() {
         it("rejects payment before start", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(EVMThrow);
@@ -107,10 +108,10 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         it("allocates the correct number of tokens", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy});
             const balance = await this.token.balanceOf(other1);
-            balance.should.be.bignumber.equal(calculateTokens(startingWeiRaised, fromWei(this.maxWhitelistBuy, "ether")));
+            balance.should.be.bignumber.equal(calculateTokens(startingWeiRaised, this.maxWhitelistBuy));
         });
     });
-
+        */
     describe("Normal buying period", function() {
         beforeEach(async function() {
             await increaseTimeTo(this.whitelistEndTime + duration.hours(1));
@@ -139,9 +140,10 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
 
         it("allocates the correct number of tokens", async function() {
             const buySize = e2Wei(25000);
+            const currTier = await this.crowdsale.currTier();
             await this.crowdsale.buyTokens(other3, {from: other3, value: buySize});
             const balance = await this.token.balanceOf(other3);
-            balance.should.be.bignumber.equal(calculateTokens(startingWeiRaised, fromWei(buySize, "ether")));
+            balance.should.be.bignumber.equal(calculateTokens(startingWeiRaised, buySize));
         });
     });
 });
@@ -266,19 +268,21 @@ var tierRates = function() {
 
 //clone of function in contract, written in JS
 var calculateTokens = function(startWei, weiAmt) {
-    var totalWei = startWei;
-    var amtLeft  = weiAmt;
+    var totalWei = new BigNumber(startWei);
+    var amtLeft  = new BigNumber(weiAmt);
     var tokens   = new BigNumber(0);
     var capLeft;
     for (var i=0; i<tiers.length; i++) {
-        capLeft = tiers[i].amountCap.minus(totalWei);
-        if (amtLeft <= capLeft) {
-            tokens += tiers[i].rate * amtLeft;
+        var rate = new BigNumber(tiers[i].rate);
+        var cap  = new BigNumber(tiers[i].amountCap);
+        capLeft = cap.minus(totalWei);
+        if (amtLeft.lte(capLeft)) {
+            tokens = tokens.plus(amtLeft.times(rate));
             break;
         }
-        tokens += tiers[i].rate * capLeft;
-        totalWei += capLeft;
-        amtLeft  -= capLeft;
+        tokens = tokens.plus(capLeft.times(rate));
+        totalWei = totalWei.plus(capLeft);
+        amtLeft  = amtLeft.minus(capLeft);
     }
     return tokens;
 };
