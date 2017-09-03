@@ -40,6 +40,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
 
+    /*
     describe("Before contract starts", function() {
         it("rejects payment before start", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(h.EVMThrow);
@@ -161,6 +162,37 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
             await this.crowdsale.buyTokens(other3, {from: other3, value: buySize});
             const balance = await this.token.balanceOf(other3);
             balance.should.be.bignumber.equal(h.calculateTokens(tiers, startingWeiRaised, buySize));
+        });
+    });
+        */
+
+    describe("End and finalization", function() {
+        beforeEach(async function() {
+            await h.increaseTimeTo(this.endTime + h.duration.hours(1));
+        });
+
+        it("can't receive payments after end", async function() {
+            await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(h.EVMThrow);
+        });
+
+        it("finalizes the contract", async function() {
+            await this.crowdsale.finalize({from: owner}).should.be.fulfilled;
+        });
+
+        it("can't finalize twice", async function() {
+            await this.crowdsale.finalize({from: owner}).should.be.fulfilled;
+            await this.crowdsale.finalize({from: owner}).should.be.rejectedWith(h.EVMThrow);
+        });
+
+        it("mints remaining Eth allocation amount of tokens to the devs", async function() {
+            const pre = await this.token.balanceOf(wallet);
+            const weiRaised = await this.crowdsale.weiRaised();
+            var c = new h.BigNumber(cap);
+            const remainingWei = c.minus(weiRaised);
+            const remainingTokens = h.calculateTokens(tiers, weiRaised, remainingWei);
+            await this.crowdsale.finalize({from: owner}).should.be.fulfilled;
+            const post = await this.token.balanceOf(wallet);
+            post.minus(pre).should.be.bignumber.equal(remainingTokens);
         });
     });
 });
