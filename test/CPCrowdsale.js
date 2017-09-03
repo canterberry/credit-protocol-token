@@ -120,15 +120,12 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
             post.minus(pre).should.be.bignumber.equal(buySize);
         });
 
-        /*
-        it("calculates token allocation correctly", async function() {
-            (3).should.be.equal(2);
-        });
-
         it("allocates the correct number of tokens", async function() {
-            (3).should.be.equal(2);
+            const buySize = e2Wei(25000);
+            await this.crowdsale.buyTokens(other3, {from: other3, value: buySize});
+            const balance = await this.token.balanceOf(other3);
+            balance.should.be.bignumber.equal(tokenToDec(expectedTokens(startingWeiRaised, fromWei(buySize, "ether"))));
         });
-         */
     });
 });
 
@@ -208,7 +205,7 @@ var advanceToBlock = async function(number) {
 
 var latestTime = function() {
   return web3.eth.getBlock('latest').timestamp;
-}
+};
 
 var e2Wei = function(n) {
     return new web3.BigNumber(web3.toWei(n, 'ether'));
