@@ -5,11 +5,12 @@ import './AbstractWhitelist.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 import 'zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
 contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   using SafeMath for uint256;
 
-  uint256 public numDevTokensDec;
+  bool public preMintDone; //when true, owner can no longer pre-mint
 
   uint256   public constant numTiers = 6;
   uint256[] public tierRates;
@@ -26,13 +27,11 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     FinalizableCrowdsale()
     Crowdsale(_startTime, _endTime, 1, _wallet)  //rate is a dummy value; we don't use it
   {
-    //use an 18 decimal conversion
-    numDevTokensDec = _numDevTokensNoDec * (10 ** 18);
+    preMint(_wallet, _numDevTokensNoDec);
     aw = AbstractWhitelist(_whitelistContract);
     require ( aw.numUsers() > 0 );
     currTier = 0;
     whitelistEndTime = _whitelistEndTime;
-    token.mint(_wallet, numDevTokensDec); //distribute agreed amount of tokens to devs
     initTiers(_tierRates, _tierAmountCaps);
     weiRaised = _startingWeiRaised;
     maxWhitelistPurchaseWei = (cap - weiRaised).div(aw.numUsers());
@@ -49,6 +48,17 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
       tierRates.push(_tierRates[i]);
       tierAmountCaps.push(_tierAmountCaps[i]);
     }
+  }
+
+  function preMint(address beneficiary, uint256 _numTokensNoDec) onlyOwner {
+    require ( now < startTime ); //only runs before start of sale
+    require ( !preMintDone );
+    token.mint(beneficiary, (_numTokensNoDec * (10 ** 18)));
+  }
+
+  function endPreMint() onlyOwner {
+    require ( !preMintDone );
+    preMintDone = true;
   }
 
   function buyTokens(address beneficiary) payable {

@@ -46,8 +46,8 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         });
 
         it("mints the correct number of developer tokens", async function() {
-            var n = new h.BigNumber((await this.crowdsale.numDevTokensDec()).valueOf());
-            n.should.be.bignumber.equal(h.tokenToDec(numDevTokensNoDec));
+            var balance = await this.token.balanceOf(wallet);
+            balance.should.be.bignumber.equal(h.tokenToDec(numDevTokensNoDec));
         });
 
         it("sets the tiers correctly", async function() {
