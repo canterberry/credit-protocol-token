@@ -42,6 +42,7 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
         this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, rate, wallet, cap, this.whitelist.address, startingWeiRaised, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
+        //START ACCEPTING PAYMENTS
         await increaseTimeTo(this.startTime);
     });
 
@@ -59,18 +60,40 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
     });
 
     it("allows buy up to max during whitelist period", async function() {
-        await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.fulfilled;
+        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy}).should.be.fulfilled;
+    });
+
+    it("does not allow double purchasing during the whitelist period", async function() {
+        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
+        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(EVMThrow);
     });
 
     it("allows buy over the max after whitelist period", async function() {
+        await increaseTimeTo(this.whitelistEndTime + duration.hours(1));
+        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.plus(1)}).should.be.fulfilled;
+    });
 
+    it("allows double purchasing after the whitelist period", async function() {
+        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
+        await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(EVMThrow);
+    });
+
+    it("allows non-beneficiary to buy for beneficiary after whitelist period", async function() {
+        await increaseTimeTo(this.whitelistEndTime + duration.hours(1));
+        await this.crowdsale.buyTokens(other1, {from: other2, value: e2Wei(1)}).should.be.fulfilled;
+    });
+
+    it("forwards the correct amount to the wallet", async function() {
+        (3).should.be.equal(2);
+    });
+
+    it("calculates token allocation correctly", async function() {
+        (3).should.be.equal(2);
     });
 
     it("allocates the correct number of tokens", async function() {
-
+        (3).should.be.equal(2);
     });
-
-
 });
 
 
