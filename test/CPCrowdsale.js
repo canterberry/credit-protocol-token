@@ -45,7 +45,7 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
 
     it("has a number of users", async function() {
         v = await this.whitelist.numUsers();
-        console.log(v.valueOf());
+        v.valueOf().should.equal('3');
     });
 });
 
