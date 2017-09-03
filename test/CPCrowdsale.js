@@ -46,7 +46,6 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         this.maxWhitelistBuy = new BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
 
-    /*
     describe("Before contract starts", function() {
         it("rejects payment before start", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(EVMThrow);
@@ -111,7 +110,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
             balance.should.be.bignumber.equal(calculateTokens(startingWeiRaised, this.maxWhitelistBuy));
         });
     });
-        */
+
     describe("Normal buying period", function() {
         beforeEach(async function() {
             await increaseTimeTo(this.whitelistEndTime + duration.hours(1));
