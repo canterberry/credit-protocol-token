@@ -22,7 +22,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   uint256 whitelistEndTime;
   uint256 public maxWhitelistPurchaseWei;
 
-  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, address _wallet, uint256 _cap, uint256[] _tierRates, uint256[] _tierAmountCaps, address _whitelistContract, uint256 _startingWeiRaised, uint256 _numDevTokensNoDec)
+  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, address _wallet, uint256 _cap, uint256[] _tierRates, uint256[] _tierAmountCaps, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec)
     CappedCrowdsale(_cap)
     FinalizableCrowdsale()
     Crowdsale(_startTime, _endTime, 1, _wallet)  //rate is a dummy value; we use tiers instead
@@ -33,7 +33,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     currTier = 0;
     whitelistEndTime = _whitelistEndTime;
     initTiers(_tierRates, _tierAmountCaps);
-    weiRaised = _startingWeiRaised;
+    weiRaised = _startingWeiSold;
     maxWhitelistPurchaseWei = (cap - weiRaised).div(aw.numUsers());
   }
 

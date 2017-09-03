@@ -16,7 +16,7 @@ const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
 contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
     const numDevTokensNoDec     = new h.BigNumber(10000000); //10M
-    const startingWeiRaised = h.toWei(1296, "ether");
+    const startingWeiSold = h.toWei(1296, "ether");
     const cap = h.toWei(45000, "ether");
 
     before(async function() {
@@ -35,7 +35,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         await this.whitelist.signUp({from: other1});
         await this.whitelist.signUp({from: other2});
 
-        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, wallet, cap, tierRates(), tierAmountCaps(), this.whitelist.address, startingWeiRaised, numDevTokensNoDec, {from: owner});
+        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, wallet, cap, tierRates(), tierAmountCaps(), this.whitelist.address, startingWeiSold, numDevTokensNoDec, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
@@ -96,7 +96,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
 
         it("calculates whitelist max purchase correctly", async function() {
             whitelistSize = new h.BigNumber((await this.whitelist.numUsers()).valueOf());
-            this.maxWhitelistBuy.should.be.bignumber.equal((cap - startingWeiRaised)/whitelistSize);
+            this.maxWhitelistBuy.should.be.bignumber.equal((cap - startingWeiSold)/whitelistSize);
         });
 
         it("does not allow non-beneficiary to do a whitelist buy", async function() {
@@ -130,7 +130,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         it("allocates the correct number of tokens", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy});
             const balance = await this.token.balanceOf(other1);
-            balance.should.be.bignumber.equal(h.calculateTokens(tiers, startingWeiRaised, this.maxWhitelistBuy));
+            balance.should.be.bignumber.equal(h.calculateTokens(tiers, startingWeiSold, this.maxWhitelistBuy));
         });
     });
 
@@ -165,7 +165,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
             const currTier = await this.crowdsale.currTier();
             await this.crowdsale.buyTokens(other3, {from: other3, value: buySize});
             const balance = await this.token.balanceOf(other3);
-            balance.should.be.bignumber.equal(h.calculateTokens(tiers, startingWeiRaised, buySize));
+            balance.should.be.bignumber.equal(h.calculateTokens(tiers, startingWeiSold, buySize));
         });
     });
 
