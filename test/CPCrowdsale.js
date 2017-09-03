@@ -80,11 +80,13 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
             await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(EVMThrow);
         });
 
-        /*
-        it("forwards the correct amount to the wallet", async function() {
-            (3).should.be.equal(2);
+        it('should forward funds to wallet', async function () {
+            const pre = web3.eth.getBalance(wallet);
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy});
+            const post = web3.eth.getBalance(wallet);
+            post.minus(pre).should.be.bignumber.equal(this.maxWhitelistBuy);
         });
-
+        /*
         it("calculates token allocation correctly", async function() {
             (3).should.be.equal(2);
         });
@@ -113,11 +115,15 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
             await this.crowdsale.buyTokens(other1, {from: other2, value: e2Wei(1)}).should.be.fulfilled;
         });
 
-        /*
-        it("forwards the correct amount to the wallet", async function() {
-            (3).should.be.equal(2);
+        it('should forward funds to wallet', async function () {
+            const buySize = e2Wei(10000);
+            const pre = web3.eth.getBalance(wallet);
+            await this.crowdsale.buyTokens(other3, {from: other3, value: buySize});
+            const post = web3.eth.getBalance(wallet);
+            post.minus(pre).should.be.bignumber.equal(buySize);
         });
 
+        /*
         it("calculates token allocation correctly", async function() {
             (3).should.be.equal(2);
         });
