@@ -77,7 +77,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
     forwardFunds();
-  }
+  }i
 
   //can't override because need to pass value
   function whitelistValidPurchase(address buyer, address beneficiary, uint256 amountWei) constant returns (bool) {
