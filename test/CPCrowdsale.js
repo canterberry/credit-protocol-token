@@ -38,7 +38,10 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         await this.whitelist.signUp({from: other1});
         await this.whitelist.signUp({from: other2});
 
-        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, wallet, cap, this.whitelist.address, startingWeiRaised, numDevTokensNoDec, {from: owner});
+//        console.log(tierRates());
+//        console.log(tierAmountCaps());
+
+        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, wallet, cap, tierRates(), tierAmountCaps(), this.whitelist.address, startingWeiRaised, numDevTokensNoDec, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
@@ -51,6 +54,15 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         it("mints the correct number of developer tokens", async function() {
             var n = new BigNumber((await this.crowdsale.numDevTokensDec()).valueOf());
             n.should.be.bignumber.equal(tokenToDec(numDevTokensNoDec));
+        });
+
+        it("sets the tiers correctly", async function() {
+            for (var i=0; i<tiers.length; i++) {
+                var c = new BigNumber((await this.crowdsale.tierAmountCaps(i)).valueOf());
+                var r = new BigNumber((await this.crowdsale.tierRates(i)).valueOf());
+                tiers[i].amountCap.should.be.bignumber.equal(c);
+                tiers[i].rate.should.be.bignumber.equal(r);
+            }
         });
     });
 
@@ -95,7 +107,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         it("allocates the correct number of tokens", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy});
             const balance = await this.token.balanceOf(other1);
-            balance.should.be.bignumber.equal(tokenToDec(expectedTokens(startingWeiRaised, fromWei(this.maxWhitelistBuy, "ether"))));
+            balance.should.be.bignumber.equal(calculateTokens(startingWeiRaised, fromWei(this.maxWhitelistBuy, "ether")));
         });
     });
 
@@ -129,7 +141,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
             const buySize = e2Wei(25000);
             await this.crowdsale.buyTokens(other3, {from: other3, value: buySize});
             const balance = await this.token.balanceOf(other3);
-            balance.should.be.bignumber.equal(tokenToDec(expectedTokens(startingWeiRaised, fromWei(buySize, "ether"))));
+            balance.should.be.bignumber.equal(calculateTokens(startingWeiRaised, fromWei(buySize, "ether")));
         });
     });
 });
@@ -214,7 +226,7 @@ var latestTime = function() {
 };
 
 var e2Wei = function(n) {
-    return new web3.BigNumber(web3.toWei(n, 'ether'));
+    return new BigNumber(toWei(n, 'ether'));
 };
 
 var eBal = function(account) {
@@ -227,28 +239,45 @@ var tokenToDec = function(tokenAmt) {
     return web3.toWei(tokenAmt, "ether");
 };
 
-var tiers = [
-    { amountCap: 5000,  rate: 1500 },
-    { amountCap: 10000, rate: 1350 },
-    { amountCap: 20000, rate: 1250 },
-    { amountCap: 30000, rate: 1150 },
-    { amountCap: 40000, rate: 1100 },
-    { amountCap: 45000, rate: 1050 },
+const tiers = [
+    { amountCap: e2Wei(5000),  rate: 1500 },
+    { amountCap: e2Wei(10000), rate: 1350 },
+    { amountCap: e2Wei(20000), rate: 1250 },
+    { amountCap: e2Wei(30000), rate: 1150 },
+    { amountCap: e2Wei(40000), rate: 1100 },
+    { amountCap: e2Wei(45000), rate: 1050 },
 ];
 
-var expectedTokens = function(startWei, ethAmt) {
-    var totalEth = parseInt(web3.fromWei(startWei, "ether"));
-    var amtLeft  = parseInt(ethAmt);
-    var tokens   = 0;
+var tierAmountCaps = function() {
+    var tmp = [];
+    for(var i=0; i<tiers.length; i++) {
+        tmp.push(tiers[i].amountCap);
+    }
+    return tmp;
+};
+
+var tierRates = function() {
+    var tmp = [];
+    for(var i=0; i<tiers.length; i++) {
+        tmp.push(tiers[i].rate);
+    }
+    return tmp;
+};
+
+//clone of function in contract, written in JS
+var calculateTokens = function(startWei, weiAmt) {
+    var totalWei = startWei;
+    var amtLeft  = weiAmt;
+    var tokens   = new BigNumber(0);
     var capLeft;
     for (var i=0; i<tiers.length; i++) {
-        capLeft = tiers[i].amountCap - totalEth;
+        capLeft = tiers[i].amountCap.minus(totalWei);
         if (amtLeft <= capLeft) {
             tokens += tiers[i].rate * amtLeft;
             break;
         }
         tokens += tiers[i].rate * capLeft;
-        totalEth += capLeft;
+        totalWei += capLeft;
         amtLeft  -= capLeft;
     }
     return tokens;

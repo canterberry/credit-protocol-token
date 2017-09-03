@@ -21,10 +21,10 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   uint256 whitelistEndTime;
   uint256 public maxWhitelistPurchaseWei;
 
-  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, address _wallet, uint256 _cap, address _whitelistContract, uint256 _startingWeiRaised, uint256 _numDevTokensNoDec)
+  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, address _wallet, uint256 _cap, uint256[] _tierRates, uint256[] _tierAmountCaps, address _whitelistContract, uint256 _startingWeiRaised, uint256 _numDevTokensNoDec)
     CappedCrowdsale(_cap)
     FinalizableCrowdsale()
-    Crowdsale(_startTime, _endTime, 1, _wallet)
+    Crowdsale(_startTime, _endTime, 1, _wallet)  //rate is a dummy value; we don't use it
   {
     //use an 18 decimal conversion
     numDevTokensDec = _numDevTokensNoDec * (10 ** 18);
@@ -33,7 +33,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     currTier = 0;
     whitelistEndTime = _whitelistEndTime;
     token.mint(_wallet, numDevTokensDec); //distribute agreed amount of tokens to devs
-    initTiers();
+    initTiers(_tierRates, _tierAmountCaps);
     weiRaised = _startingWeiRaised;
     maxWhitelistPurchaseWei = (cap - weiRaised).div(aw.numUsers());
   }
@@ -42,21 +42,13 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     return new CPToken();
   }
 
-  //this is a bit dirty and hard-coded, but that's safer in this case than generalizing
-  function initTiers() {
-    require ( (45000 ether) == cap );
-    tierAmountCaps.push(5000 ether);
-    tierRates.push(1500);
-    tierAmountCaps.push(10000 ether);
-    tierRates.push(1350);
-    tierAmountCaps.push(20000 ether);
-    tierRates.push(1250);
-    tierAmountCaps.push(30000 ether);
-    tierRates.push(1150);
-    tierAmountCaps.push(40000 ether);
-    tierRates.push(1100);
-    tierAmountCaps.push(45000 ether);
-    tierRates.push(1050);
+  function initTiers(uint256[] _tierRates, uint256[] _tierAmountCaps) {
+    uint256 highestAmount = _tierAmountCaps[_tierAmountCaps.length - 1];
+    require ( highestAmount == cap );
+    for ( uint i=0; i<_tierAmountCaps.length; i++) {
+      tierRates.push(_tierRates[i]);
+      tierAmountCaps.push(_tierAmountCaps[i]);
+    }
   }
 
   function buyTokens(address beneficiary) payable {
