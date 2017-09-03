@@ -86,15 +86,12 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
             const post = web3.eth.getBalance(wallet);
             post.minus(pre).should.be.bignumber.equal(this.maxWhitelistBuy);
         });
-        /*
-        it("calculates token allocation correctly", async function() {
-            (3).should.be.equal(2);
-        });
 
         it("allocates the correct number of tokens", async function() {
-            (3).should.be.equal(2);
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy});
+            const balance = await this.token.balanceOf(other1);
+            balance.should.be.bignumber.equal(tokenToDec(expectedTokens(startingWeiRaised, fromWei(this.maxWhitelistBuy, "ether"))));
         });
-         */
     });
 
     describe("Normal buying period", function() {

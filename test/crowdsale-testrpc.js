@@ -83,7 +83,7 @@ contract('CPCrowdsale', function(accounts) {
     const thirtyDays = 30*24*60*60;
     const wallet = account1;
 
-    it("calculateTokens works; buying tokens for 1 user works;", function() {
+    it("calcuateTokens works; buying tokens for 1 user works;", function() {
         var buyAmt = web3.toWei(3704 + 5000 + 10000 + 10000 + 10000 + 5);
         var expectedTokens = tokenAmount(startingWeiRaised, web3.fromWei(buyAmt));
         var numTokens;
