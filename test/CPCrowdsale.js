@@ -47,6 +47,11 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         it("rejects payment before start", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(EVMThrow);
         });
+
+        it("mints the correct number of developer tokens", async function() {
+            var n = new BigNumber((await this.crowdsale.numDevTokensDec()).valueOf());
+            n.should.be.bignumber.equal(tokenToDec(numDevTokensNoDec));
+        });
     });
 
     describe("Whitelist period", function() {
