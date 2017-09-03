@@ -71,13 +71,12 @@ contract('CPCrowdsale', function(accounts) {
 
     it("can buy up to maxPurchase during whitelist period", function() {
         web3.eth.getBlock("latest", (error, result) => {
-
             var maxBuy;
             var numWhitelistUsers;
             Whitelist.deployed().then(instance => {
                 whitelist = instance;
             }).then(v => {
-                return CPCrowdsale.new(startTime, endTime, whitelistEndTime, rate, wallet, cap, whitelist.address, startingWeiRaised, {from: account1});
+                return CPCrowdsale.deployed();
             }).then(instance => {
                 cpSale = instance;
                 return cpSale.token();
@@ -100,7 +99,7 @@ contract('CPCrowdsale', function(accounts) {
             });
         });
     });
-
+    /*
     it("can't buy over maxPurchase during whitelist period", function() {
         web3.eth.getBlock("latest", (error, result) => {
             var now = result.timestamp;
@@ -126,6 +125,7 @@ contract('CPCrowdsale', function(accounts) {
             });
         });
     });
+*/
 
     /*
     it("*can* buy over maxPurchase *after* whitelist period", function() {
@@ -156,5 +156,7 @@ contract('CPCrowdsale', function(accounts) {
 
     /*
      next test: number of tokens created
+                - can't buy for somebody else during whitelist period
+
      */
 });

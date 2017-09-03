@@ -1,6 +1,6 @@
 module.exports = {
   networks: {
-    csWhitelist: {
+    testrpc: {
       host: "localhost",
       port: 8546,
       network_id: "*" // Match any network id
