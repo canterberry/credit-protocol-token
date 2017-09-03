@@ -45,6 +45,11 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
             await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(h.EVMThrow);
         });
 
+        it("pre-mint can be ended early; no pre-mint after ending", async function() {
+            await this.crowdsale.endPreMint({from: owner}).should.be.fulfilled;
+            await this.crowdsale.preMint(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
+        });
+
         it("non-owner can't pre-mint", async function() {
             await this.crowdsale.preMint(wallet, 1, {from: wallet}).should.be.rejectedWith(h.EVMThrow);
         });

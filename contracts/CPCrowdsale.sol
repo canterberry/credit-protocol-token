@@ -25,7 +25,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, address _wallet, uint256 _cap, uint256[] _tierRates, uint256[] _tierAmountCaps, address _whitelistContract, uint256 _startingWeiRaised, uint256 _numDevTokensNoDec)
     CappedCrowdsale(_cap)
     FinalizableCrowdsale()
-    Crowdsale(_startTime, _endTime, 1, _wallet)  //rate is a dummy value; we don't use it
+    Crowdsale(_startTime, _endTime, 1, _wallet)  //rate is a dummy value; we use tiers instead
   {
     preMint(_wallet, _numDevTokensNoDec);
     aw = AbstractWhitelist(_whitelistContract);
