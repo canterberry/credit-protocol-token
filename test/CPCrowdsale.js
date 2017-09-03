@@ -17,7 +17,7 @@ const CPCrowdsale = artifacts.require('./helpers/CPCrowdsale.sol');
 const CPToken = artifacts.require("./CPToken.sol");
 const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
-contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
+contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
     const rate = new BigNumber(1000); //rate not actually used, uses tiers
     const startingWeiRaised = toWei(1296, "ether");
     const cap = toWei(45000, "ether");
@@ -27,7 +27,7 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
         await advanceBlock();
     });
 
-    beforeEach(async function () {
+    beforeEach(async function() {
         this.startTime        = latestTime()   + duration.weeks(1);
         this.endTime          = this.startTime + duration.weeks(4);
         this.whitelistEndTime = this.startTime + duration.weeks(1);
@@ -80,7 +80,7 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
             await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(EVMThrow);
         });
 
-        it('should forward funds to wallet', async function () {
+        it('should forward funds to wallet', async function() {
             const pre = web3.eth.getBalance(wallet);
             await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy});
             const post = web3.eth.getBalance(wallet);
@@ -112,7 +112,7 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
             await this.crowdsale.buyTokens(other1, {from: other2, value: e2Wei(1)}).should.be.fulfilled;
         });
 
-        it('should forward funds to wallet', async function () {
+        it('should forward funds to wallet', async function() {
             const buySize = e2Wei(10000);
             const pre = web3.eth.getBalance(wallet);
             await this.crowdsale.buyTokens(other3, {from: other3, value: buySize});
@@ -135,28 +135,28 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
 
 /* helpers */
 // Increases testrpc time by the passed duration in seconds
-function increaseTime(duration) {
-  const id = Date.now()
+var increaseTime = function(duration) {
+    const id = Date.now();
 
-  return new Promise((resolve, reject) => {
-    web3.currentProvider.sendAsync({
-      jsonrpc: '2.0',
-      method: 'evm_increaseTime',
-      params: [duration],
-      id: id,
-    }, err1 => {
-      if (err1) return reject(err1)
+    return new Promise((resolve, reject) => {
+        web3.currentProvider.sendAsync({
+            jsonrpc: '2.0',
+            method: 'evm_increaseTime',
+            params: [duration],
+            id: id,
+        }, err1 => {
+            if (err1) return reject(err1)
 
-      web3.currentProvider.sendAsync({
-        jsonrpc: '2.0',
-        method: 'evm_mine',
-        id: id+1,
-      }, (err2, res) => {
-        return err2 ? reject(err2) : resolve(res)
-      })
-    })
-  })
-}
+            web3.currentProvider.sendAsync({
+                jsonrpc: '2.0',
+                method: 'evm_mine',
+                id: id+1,
+            }, (err2, res) => {
+                return err2 ? reject(err2) : resolve(res);
+            });
+        });
+    });
+};
 
 /**
  * Beware that due to the need of calling two separate testrpc methods and rpc calls overhead
@@ -196,7 +196,7 @@ var advanceBlock = function() {
 };
 
 // Advances the block number so that the last mined block is `number`.
-async function advanceToBlock(number) {
+var advanceToBlock = async function(number) {
   if (web3.eth.blockNumber > number) {
       throw Error(`block number ${number} is in the past (current is ${web3.eth.blockNumber})`);
   }
@@ -204,9 +204,9 @@ async function advanceToBlock(number) {
   while (web3.eth.blockNumber < number) {
       await advanceBlock();
   }
-}
+};
 
-function latestTime() {
+var latestTime = function() {
   return web3.eth.getBlock('latest').timestamp;
 }
 
