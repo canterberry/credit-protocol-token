@@ -40,7 +40,6 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
 
-    /*
     describe("Before contract starts", function() {
         it("rejects payment before start", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(h.EVMThrow);
@@ -164,14 +163,13 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
             balance.should.be.bignumber.equal(h.calculateTokens(tiers, startingWeiRaised, buySize));
         });
     });
-        */
 
     describe("End and finalization", function() {
         beforeEach(async function() {
             await h.increaseTimeTo(this.endTime + h.duration.hours(1));
         });
 
-        it("can't receive payments after end", async function() {
+        it("rejects payments after end", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(h.EVMThrow);
         });
 
