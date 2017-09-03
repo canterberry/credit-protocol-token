@@ -42,6 +42,7 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
         this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, rate, wallet, cap, this.whitelist.address, startingWeiRaised, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
+        await increaseTimeTo(this.startTime);
     });
 
     it("calculates whitelist max purchase correctly", async function() {
@@ -58,12 +59,17 @@ contract('CPCrowdsale', function ([owner, wallet, other1, other2, other3]) {
     });
 
     it("allows buy up to max during whitelist period", async function() {
-
+        await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.fulfilled;
     });
 
     it("allows buy over the max after whitelist period", async function() {
 
     });
+
+    it("allocates the correct number of tokens", async function() {
+
+    });
+
 
 });
 
@@ -157,4 +163,31 @@ var tokenFromDec = function(balance) {
 };
 var tokenToDec = function(tokenAmt) {
     return web3.toWei(tokenAmt, "ether");
+};
+
+var tiers = [
+    { amountCap: 5000,  rate: 1500 },
+    { amountCap: 10000, rate: 1350 },
+    { amountCap: 20000, rate: 1250 },
+    { amountCap: 30000, rate: 1150 },
+    { amountCap: 40000, rate: 1100 },
+    { amountCap: 45000, rate: 1050 },
+];
+
+var expectedTokens = function(startWei, ethAmt) {
+    var totalEth = parseInt(web3.fromWei(startWei, "ether"));
+    var amtLeft  = parseInt(ethAmt);
+    var tokens   = 0;
+    var capLeft;
+    for (var i=0; i<tiers.length; i++) {
+        capLeft = tiers[i].amountCap - totalEth;
+        if (amtLeft <= capLeft) {
+            tokens += tiers[i].rate * amtLeft;
+            break;
+        }
+        tokens += tiers[i].rate * capLeft;
+        totalEth += capLeft;
+        amtLeft  -= capLeft;
+    }
+    return tokens;
 };
