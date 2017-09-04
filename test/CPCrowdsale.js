@@ -42,6 +42,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
 
+    /*
     describe("Before start", function() {
         it("rejects payment before start", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(h.EVMThrow);
@@ -213,6 +214,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         });
     });
 
+        */
     describe("Whitelist to normal period transition", function() {
         beforeEach(async function() {
             await h.increaseTimeTo(this.startTime);
@@ -236,7 +238,20 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
             await this.crowdsale.buyTokens(other1, {from: other1, value: h.e2Wei(3)}).should.be.fulfilled;
         });
         it("multiple users buy before and after whitelist", async function() {
-            (3).should.be.equal(2);
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(h.EVMThrow);
+            await this.crowdsale.buyTokens(other2, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(h.EVMThrow);
+            await this.crowdsale.buyTokens(other2, {from: other2, value: 1}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other2, {from: other2, value: 1}).should.be.rejectedWith(h.EVMThrow);
+            await this.crowdsale.buyTokens(other3, {from: other3, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(h.EVMThrow);
+            await h.increaseTimeTo(this.whitelistEndTime + h.duration.hours(1));
+            await this.crowdsale.buyTokens(other2, {from: other1, value: h.e2Wei(1)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other1, {from: other1, value: h.e2Wei(3)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other1, {from: other1, value: h.e2Wei(3)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other3, {from: other3, value: h.e2Wei(3)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other3, {from: other1, value: h.e2Wei(500)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other2, {from: other2, value: h.e2Wei(800)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other3, {from: other1, value: cap}).should.be.rejectedWith(h.EVMThrow);
         });
 
     });
