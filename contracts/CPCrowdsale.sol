@@ -10,7 +10,9 @@ import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   using SafeMath for uint256;
 
-  bool public preMintDone; //when true, owner can no longer pre-mint
+  bool public offlineSaleDone; //when true, owner can no longer pre-mint
+  uint public maxPreTokensNoDec;
+  uint public numOfflineTokensNoDec;
 
   uint256   public constant numTiers = 6;
   uint256[] public tierRates;
@@ -22,12 +24,14 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   uint256 whitelistEndTime;
   uint256 public maxWhitelistPurchaseWei;
 
-  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, address _wallet, uint256 _cap, uint256[] _tierRates, uint256[] _tierAmountCaps, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec)
+  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, address _wallet, uint256 _cap, uint256[] _tierRates, uint256[] _tierAmountCaps, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec, uint256 _maxOfflineTokensNoDec)
     CappedCrowdsale(_cap)
     FinalizableCrowdsale()
     Crowdsale(_startTime, _endTime, 1, _wallet)  //rate is a dummy value; we use tiers instead
   {
-    preMint(_wallet, _numDevTokensNoDec);
+    maxPreTokensNoDec = _numDevTokensNoDec.add(_maxOfflineTokensNoDec);
+    numOfflineTokensNoDec = 0;
+    offlineSale(_wallet, _numDevTokensNoDec);
     aw = AbstractWhitelist(_whitelistContract);
     require ( aw.numUsers() > 0 );
     currTier = 0;
@@ -50,15 +54,18 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     }
   }
 
-  function preMint(address beneficiary, uint256 _numTokensNoDec) onlyOwner {
+  function offlineSale(address beneficiary, uint256 _numTokensNoDec) onlyOwner {
+    uint256 totalOffline = numOfflineTokensNoDec.add(_numTokensNoDec);
     require ( now < startTime ); //only runs before start of sale
-    require ( !preMintDone );
-    token.mint(beneficiary, (_numTokensNoDec * (10 ** 18)));
+    require ( !offlineSaleDone );
+    require ( totalOffline <= maxPreTokensNoDec );
+    numOfflineTokensNoDec = totalOffline;
+    token.mint(beneficiary, (_numTokensNoDec.mul(10 ** 18)));
   }
 
-  function endPreMint() onlyOwner {
-    require ( !preMintDone );
-    preMintDone = true;
+  function endOfflineSale() onlyOwner {
+    require ( !offlineSaleDone );
+    offlineSaleDone = true;
   }
 
   function buyTokens(address beneficiary) payable {

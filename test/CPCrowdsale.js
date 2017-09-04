@@ -15,7 +15,9 @@ const CPToken = artifacts.require("./CPToken.sol");
 const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
 contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
-    const numDevTokensNoDec     = new h.BigNumber(10000000); //10M
+    const numDevTokensNoDec     = new h.BigNumber(1000000); //1M
+    const maxOfflineTokensNoDec = new h.BigNumber(3000000); //3M
+
     const startingWeiSold = h.toWei(1296, "ether");
     const cap = h.toWei(45000, "ether");
 
@@ -35,37 +37,49 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         await this.whitelist.signUp({from: other1});
         await this.whitelist.signUp({from: other2});
 
-        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, wallet, cap, tierRates(), tierAmountCaps(), this.whitelist.address, startingWeiSold, numDevTokensNoDec, {from: owner});
+        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, wallet, cap, tierRates(), tierAmountCaps(), this.whitelist.address, startingWeiSold, numDevTokensNoDec, maxOfflineTokensNoDec, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
 
-    describe("Before contract starts", function() {
+    describe("Before start", function() {
         it("rejects payment before start", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(h.EVMThrow);
         });
 
-        it("pre-mint can be ended early; no pre-mint after ending", async function() {
-            await this.crowdsale.endPreMint({from: owner}).should.be.fulfilled;
-            await this.crowdsale.preMint(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
+        it("offline sales can go right up to allocation", async function() {
+            await this.crowdsale.offlineSale(wallet, maxOfflineTokensNoDec.div(2), {from: owner}).should.be.fulfilled;
+            await this.crowdsale.offlineSale(wallet, maxOfflineTokensNoDec.div(2), {from: owner}).should.be.fulfilled;
         });
 
-        it("non-owner can't pre-mint", async function() {
-            await this.crowdsale.preMint(wallet, 1, {from: wallet}).should.be.rejectedWith(h.EVMThrow);
+        it("offline sales can't exceed allocation", async function() {
+            await this.crowdsale.offlineSale(wallet, maxOfflineTokensNoDec.div(2), {from: owner}).should.be.fulfilled;
+            await this.crowdsale.offlineSale(wallet, maxOfflineTokensNoDec.div(2), {from: owner}).should.be.fulfilled;
+            await this.crowdsale.offlineSale(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
         });
 
-        it("owner can pre-mint", async function() {
-            var amt1 = new h.BigNumber(5006001);
-            await this.crowdsale.preMint(wallet, amt1, {from: owner}).should.be.fulfilled;
+        it("offline sale recording can be ended early; no offline sales after ending", async function() {
+            await this.crowdsale.offlineSale(wallet, numDevTokensNoDec, {from: owner}).should.be.fulfilled;
+            await this.crowdsale.endOfflineSale({from: owner}).should.be.fulfilled;
+            await this.crowdsale.offlineSale(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
         });
 
-        it("pre-mint increases totalSupply correctly", async function() {
+        it("non-owner can't record offline sale", async function() {
+            await this.crowdsale.offlineSale(wallet, 1, {from: wallet}).should.be.rejectedWith(h.EVMThrow);
+        });
+
+        it("owner can do offline sale", async function() {
+            var amt1 = maxOfflineTokensNoDec;
+            await this.crowdsale.offlineSale(wallet, amt1, {from: owner}).should.be.fulfilled;
+        });
+
+        it("offline sale increases totalSupply correctly", async function() {
             var amt1 = new h.BigNumber     (1);
             var amt2 = new h.BigNumber (50000);
             var amt3 = new h.BigNumber(910090);
-            await this.crowdsale.preMint(other1, amt1, {from: owner}).should.be.fulfilled;
-            await this.crowdsale.preMint(other1, amt2, {from: owner}).should.be.fulfilled;
-            await this.crowdsale.preMint(other2, amt3, {from: owner}).should.be.fulfilled;
+            await this.crowdsale.offlineSale(other1, amt1, {from: owner}).should.be.fulfilled;
+            await this.crowdsale.offlineSale(other1, amt2, {from: owner}).should.be.fulfilled;
+            await this.crowdsale.offlineSale(other2, amt3, {from: owner}).should.be.fulfilled;
             var supply = await this.token.totalSupply();
             supply.should.be.bignumber.equal(h.tokenToDec(amt1.plus(amt2).plus(amt3)).plus(h.tokenToDec(numDevTokensNoDec)));
         });
@@ -85,13 +99,14 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         });
     });
 
+    /*
     describe("Whitelist period", function() {
         beforeEach(async function() {
             await h.increaseTimeTo(this.startTime);
         });
 
-        it("owner can't pre-mint after start", async function() {
-            await this.crowdsale.preMint(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
+        it("owner can't record offline sale after start", async function() {
+            await this.crowdsale.offlineSale(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
         });
 
         it("calculates whitelist max purchase correctly", async function() {
@@ -198,9 +213,9 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
             post.minus(pre).should.be.bignumber.equal(remainingTokens);
         });
     });
+     */
 });
 
-//TODO: do finalization
 
 
 const tiers = [
