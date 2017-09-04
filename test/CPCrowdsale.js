@@ -99,7 +99,6 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         });
     });
 
-    /*
     describe("Whitelist period", function() {
         beforeEach(async function() {
             await h.increaseTimeTo(this.startTime);
@@ -213,7 +212,7 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
             post.minus(pre).should.be.bignumber.equal(remainingTokens);
         });
     });
-     */
+
 });
 
 
