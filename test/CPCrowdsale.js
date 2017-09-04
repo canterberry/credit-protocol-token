@@ -213,6 +213,33 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         });
     });
 
+    describe("Whitelist to normal period transition", function() {
+        beforeEach(async function() {
+            await h.increaseTimeTo(this.startTime);
+        });
+
+        it("can buy on whitelist, then buy in normal period", async function() {
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
+            await h.increaseTimeTo(this.whitelistEndTime + h.duration.hours(1));
+            await this.crowdsale.buyTokens(other1, {from: other1, value: h.e2Wei(1)}).should.be.fulfilled;
+        });
+        it("rejected on whitelist, can buy in normal period", async function() {
+            await this.crowdsale.buyTokens(other3, {from: other3, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(h.EVMThrow);
+            await h.increaseTimeTo(this.whitelistEndTime + h.duration.hours(1));
+            await this.crowdsale.buyTokens(other3, {from: other3, value: h.e2Wei(1)}).should.be.fulfilled;
+        });
+        it("can't double buy whitelist, can double buy in normal period", async function() {
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other1, {from: other1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(h.EVMThrow);
+            await h.increaseTimeTo(this.whitelistEndTime + h.duration.hours(1));
+            await this.crowdsale.buyTokens(other1, {from: other1, value: h.e2Wei(1)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(other1, {from: other1, value: h.e2Wei(3)}).should.be.fulfilled;
+        });
+        it("multiple users buy before and after whitelist", async function() {
+            (3).should.be.equal(2);
+        });
+
+    });
 });
 
 
