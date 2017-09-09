@@ -16,7 +16,7 @@ const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
 contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
     const numDevTokensNoDec     = new h.BigNumber(23231733); //23M+
-    const maxOfflineTokensNoDec = new h.BigNumber(3000000); //3M
+    const maxOfflineTokensNoDec = new h.BigNumber(36000000); //36M
 
     const startingWeiSold = h.toWei(1296, "ether");
     const cap = h.toWei(45000, "ether");
