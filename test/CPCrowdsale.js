@@ -15,7 +15,7 @@ const CPToken = artifacts.require("./CPToken.sol");
 const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
 contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
-    const numDevTokensNoDec     = new h.BigNumber(1000000); //1M
+    const numDevTokensNoDec     = new h.BigNumber(23231733); //23M+
     const maxOfflineTokensNoDec = new h.BigNumber(3000000); //3M
 
     const startingWeiSold = h.toWei(1296, "ether");
@@ -42,7 +42,6 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
 
-    /*
     describe("Before start", function() {
         it("rejects payment before start", async function() {
             await this.crowdsale.buyTokens(other1, {from: other1, value: 1}).should.be.rejectedWith(h.EVMThrow);
@@ -214,7 +213,6 @@ contract('CPCrowdsale', function([owner, wallet, other1, other2, other3]) {
         });
     });
 
-        */
     describe("Whitelist to normal period transition", function() {
         beforeEach(async function() {
             await h.increaseTimeTo(this.startTime);
