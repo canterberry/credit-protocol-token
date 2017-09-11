@@ -23,8 +23,9 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   mapping ( address => bool ) hasPurchased; //has whitelist address purchased already
   uint256 whitelistEndTime;
   uint256 public maxWhitelistPurchaseWei;
+  uint256 openWhitelistEndTime;
 
-  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, address _wallet, uint256 _cap, uint256[] _tierRates, uint256[] _tierAmountCaps, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec, uint256 _maxOfflineTokensNoDec)
+  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, uint256 _cap, uint256[] _tierRates, uint256[] _tierAmountCaps, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec, uint256 _maxOfflineTokensNoDec)
     CappedCrowdsale(_cap)
     FinalizableCrowdsale()
     Crowdsale(_startTime, _endTime, 1, _wallet)  //rate is a dummy value; we use tiers instead
@@ -36,13 +37,14 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     require ( aw.numUsers() > 0 );
     currTier = 0;
     whitelistEndTime = _whitelistEndTime;
+    openWhitelistEndTime = _openWhitelistEndTime;
     initTiers(_tierRates, _tierAmountCaps);
     weiRaised = _startingWeiSold;
     maxWhitelistPurchaseWei = (cap - weiRaised).div(aw.numUsers());
   }
 
   function createTokenContract() internal returns (MintableToken) {
-    return new CPToken();
+    return new CPToken(endTime);
   }
 
   function initTiers(uint256[] _tierRates, uint256[] _tierAmountCaps) {
@@ -74,6 +76,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     require(beneficiary != 0x0);
     require(validPurchase());
     require(whitelistValidPurchase(msg.sender, beneficiary, weiAmount));
+    require(openWhitelistValidPurchase(msg.sender, beneficiary));
 
     if (isWhitelistPeriod()) hasPurchased[beneficiary] = true;
 
@@ -102,6 +105,20 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
   function isWhitelistPeriod() constant returns (bool) {
     return ( now <= whitelistEndTime );
+  }
+
+  function openWhitelistValidPurchase(address buyer, address beneficiary) constant returns (bool) {
+    if ( isOpenWhitelistPeriod() ) {
+      if ( buyer != beneficiary )         return false;
+      if ( !aw.isSignedUp(beneficiary) )  return false;
+    }
+    return true;
+  }
+
+  function isOpenWhitelistPeriod() constant returns (bool) {
+    bool cappedWhitelistOver = now > whitelistEndTime;
+    bool openWhitelistPeriod = now <= openWhitelistEndTime;
+    return cappedWhitelistOver && openWhitelistPeriod;
   }
 
   /**

@@ -23,6 +23,6 @@ contract TestSale is CappedCrowdsale, FinalizableCrowdsale {
   }
 
   function createTokenContract() internal returns (MintableToken) {
-    return new CPToken();
+    return new CPToken(endTime);
   }
 }
