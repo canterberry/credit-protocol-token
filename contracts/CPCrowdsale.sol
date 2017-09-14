@@ -47,7 +47,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     return new CPToken(endTime);
   }
 
-  function initTiers(uint256[] _tierRates, uint256[] _tierAmountCaps) {
+  function initTiers(uint256[] _tierRates, uint256[] _tierAmountCaps) private {
     uint256 highestAmount = _tierAmountCaps[_tierAmountCaps.length - 1];
     require ( highestAmount == cap );
     for ( uint i=0; i<_tierAmountCaps.length; i++) {
