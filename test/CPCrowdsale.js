@@ -27,11 +27,11 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
     });
 
     beforeEach(async function() {
-        this.startTime        = h.latestTime()   + h.duration.weeks(1);
-        this.endTime          = this.startTime + h.duration.weeks(4);
-        this.whitelistEndTime = this.startTime + h.duration.days(5);
+        this.startTime            = h.latestTime() + h.duration.weeks(1);
+        this.endTime              = this.startTime + h.duration.weeks(4);
+        this.whitelistEndTime     = this.startTime + h.duration.days(5);
         this.openWhitelistEndTime = this.startTime + h.duration.days(6);
-        this.afterEndTime     = this.endTime   + h.duration.seconds(1);
+        this.afterEndTime         = this.endTime   + h.duration.seconds(1);
 
         this.whitelist = await Whitelist.new({from: owner});
         await this.whitelist.setSignUpOnOff(true, {from: owner});
@@ -151,7 +151,7 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
 
     describe("Normal buying period", function() {
         beforeEach(async function() {
-            await h.increaseTimeTo(this.whitelistEndTime + h.duration.hours(1));
+            await h.increaseTimeTo(this.openWhitelistEndTime + h.duration.hours(1));
         });
 
         it("allows buy over the max", async function() {
@@ -221,18 +221,18 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
 
         it("can buy on whitelist, then buy in normal period", async function() {
             await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
-            await h.increaseTimeTo(this.whitelistEndTime + h.duration.hours(1));
+            await h.increaseTimeTo(this.openWhitelistEndTime + h.duration.hours(1));
             await this.crowdsale.buyTokens(user1, {from: user1, value: h.e2Wei(1)}).should.be.fulfilled;
         });
         it("rejected on whitelist, can buy in normal period", async function() {
             await this.crowdsale.buyTokens(user3, {from: user3, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(h.EVMThrow);
-            await h.increaseTimeTo(this.whitelistEndTime + h.duration.hours(1));
+            await h.increaseTimeTo(this.openWhitelistEndTime + h.duration.hours(1));
             await this.crowdsale.buyTokens(user3, {from: user3, value: h.e2Wei(1)}).should.be.fulfilled;
         });
         it("can't double buy whitelist, can double buy in normal period", async function() {
             await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
             await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(h.EVMThrow);
-            await h.increaseTimeTo(this.whitelistEndTime + h.duration.hours(1));
+            await h.increaseTimeTo(this.openWhitelistEndTime + h.duration.hours(1));
             await this.crowdsale.buyTokens(user1, {from: user1, value: h.e2Wei(1)}).should.be.fulfilled;
             await this.crowdsale.buyTokens(user1, {from: user1, value: h.e2Wei(3)}).should.be.fulfilled;
         });
@@ -243,7 +243,7 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
             await this.crowdsale.buyTokens(user2, {from: user2, value: 1}).should.be.fulfilled;
             await this.crowdsale.buyTokens(user2, {from: user2, value: 1}).should.be.rejectedWith(h.EVMThrow);
             await this.crowdsale.buyTokens(user3, {from: user3, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(h.EVMThrow);
-            await h.increaseTimeTo(this.whitelistEndTime + h.duration.hours(1));
+            await h.increaseTimeTo(this.openWhitelistEndTime + h.duration.hours(1));
             await this.crowdsale.buyTokens(user2, {from: user1, value: h.e2Wei(1)}).should.be.fulfilled;
             await this.crowdsale.buyTokens(user1, {from: user1, value: h.e2Wei(3)}).should.be.fulfilled;
             await this.crowdsale.buyTokens(user1, {from: user1, value: h.e2Wei(3)}).should.be.fulfilled;
