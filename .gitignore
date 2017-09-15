@@ -1,2 +1,3 @@
 *.node-xmlhttprequest-sync*
 node_modules/
+build/

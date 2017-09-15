@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity 0.4.15;
 
 import './CPToken.sol';
 import './AbstractWhitelist.sol';
@@ -40,7 +40,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     openWhitelistEndTime = _openWhitelistEndTime;
     initTiers(_tierRates, _tierAmountCaps);
     weiRaised = _startingWeiSold;
-    maxWhitelistPurchaseWei = (cap - weiRaised).div(aw.numUsers());
+    maxWhitelistPurchaseWei = (cap.sub(weiRaised)).div(aw.numUsers());
   }
 
   function createTokenContract() internal returns (MintableToken) {
@@ -48,7 +48,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   }
 
   function initTiers(uint256[] _tierRates, uint256[] _tierAmountCaps) private {
-    uint256 highestAmount = _tierAmountCaps[_tierAmountCaps.length - 1];
+    uint256 highestAmount = _tierAmountCaps[_tierAmountCaps.length.sub(1)];
     require ( highestAmount == cap );
     for ( uint i=0; i<_tierAmountCaps.length; i++) {
       tierRates.push(_tierRates[i]);
@@ -128,12 +128,12 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
    */
   function calculateTokens(uint256 _amountWei, uint256 _weiRaised, uint256 _tier, uint256 tokenAcc) constant returns (uint256) {
     uint256 currRate = tierRates[_tier];
-    uint256 tierAmountLeftWei = tierAmountCaps[_tier] - _weiRaised;
+    uint256 tierAmountLeftWei = tierAmountCaps[_tier].sub(_weiRaised);
     if ( _amountWei <= tierAmountLeftWei ) {
-      return tokenAcc.add(_amountWei * currRate);
+      return tokenAcc.add(_amountWei.mul(currRate));
     }
     else {
-      return calculateTokens(_amountWei.sub(tierAmountLeftWei), _weiRaised.add(tierAmountLeftWei), _tier.add(1), tokenAcc.add(tierAmountLeftWei * currRate));
+      return calculateTokens(_amountWei.sub(tierAmountLeftWei), _weiRaised.add(tierAmountLeftWei), _tier.add(1), tokenAcc.add(tierAmountLeftWei.mul(currRate)));
     }
   }
 
