@@ -1,3 +1,9 @@
+# CPToken Crowdsale
+
+## Solidity Compiler Config
+
+- version: 0.4.15
+- flags:
 
 ## Whitelist Mainnet Address
 `0xdaF5520A1BA8D71CDb81C69c72D736dAb058C602`

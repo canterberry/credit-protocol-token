@@ -1,4 +1,4 @@
-pragma solidity ^0.4.13;
+pragma solidity 0.4.15;
 
 contract AbstractWhitelist {
   function isSignedUp(address addr) constant returns (bool);
