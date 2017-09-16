@@ -64,10 +64,12 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
     require(beneficiary != 0x0);
     require(validPurchase());
-    require(whitelistValidPurchase(msg.sender, beneficiary, weiAmount));
-    require(openWhitelistValidPurchase(msg.sender, beneficiary));
+    require(!isWhitelistPeriod()
+         || whitelistValidPurchase(msg.sender, beneficiary, weiAmount));
+    require(!isOpenWhitelistPeriod()
+         || openWhitelistValidPurchase(msg.sender, beneficiary));
 
-    if (isWhitelistPeriod()) hasPurchased[beneficiary] = true;
+    hasPurchased[beneficiary] = true;
 
     //setTier() and calculateTokens are safe to call because validPurchase checks
     //for the cap to be passed or not
@@ -118,25 +120,21 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
   //can't override because need to pass value
   function whitelistValidPurchase(address buyer, address beneficiary, uint256 amountWei) private constant returns (bool) {
-    if (isWhitelistPeriod()) {
-      if (buyer != beneficiary)                return false;
-      if (hasPurchased[beneficiary])           return false;
-      if (!aw.isSignedUp(beneficiary))         return false;
-      if (amountWei > maxWhitelistPurchaseWei) return false;
-    }
-    return true;
+    bool beneficiaryPurchasedPreviously = hasPurchased[beneficiary];
+    bool belowMaxWhitelistPurchase = amountWei <= maxWhitelistPurchaseWei;
+    return (openWhitelistValidPurchase(buyer, beneficiary)
+            && !beneficiaryPurchasedPreviously
+            && belowMaxWhitelistPurchase);
   }
 
   function isWhitelistPeriod() private constant returns (bool) {
-    return (now <= whitelistEndTime);
+    return (now <= whitelistEndTime && now >= startTime);
   }
 
   function openWhitelistValidPurchase(address buyer, address beneficiary) private constant returns (bool) {
-    if (isOpenWhitelistPeriod()) {
-      if (buyer != beneficiary)         return false;
-      if (!aw.isSignedUp(beneficiary))  return false;
-    }
-    return true;
+    bool buyerIsBeneficiary = buyer == beneficiary;
+    bool signedup = aw.isSignedUp(beneficiary);
+    return (buyerIsBeneficiary && signedup);
   }
 
   function isOpenWhitelistPeriod() private constant returns (bool) {
