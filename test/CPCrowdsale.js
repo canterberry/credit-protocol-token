@@ -33,6 +33,10 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         this.openWhitelistEndTime = this.startTime + h.duration.days(6);
         this.afterEndTime         = this.endTime   + h.duration.seconds(1);
 
+        this.setTimeOpenWhitelistPeriod = async function() {
+            await h.increaseTimeTo(this.whitelistEndTime + h.duration.hours(1));
+        }
+
         this.setTimeNormalPeriod = async function() {
             await h.increaseTimeTo(this.openWhitelistEndTime + h.duration.hours(1));
         }
@@ -137,6 +141,46 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         it("does not allow double purchasing during the whitelist period", async function() {
             await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
             await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.div(3)}).should.be.rejectedWith(h.EVMThrow);
+        });
+
+        it('should forward funds to wallet', async function() {
+            const pre = web3.eth.getBalance(wallet);
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy});
+            const post = web3.eth.getBalance(wallet);
+            post.minus(pre).should.be.bignumber.equal(this.maxWhitelistBuy);
+        });
+
+        it("allocates the correct number of tokens", async function() {
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy});
+            const balance = await this.token.balanceOf(user1);
+            balance.should.be.bignumber.equal(h.calculateTokens(tiers, startingWeiSold, this.maxWhitelistBuy));
+        });
+    });
+
+    describe("Open Whitelist period", function() {
+        beforeEach(async function() {
+            await this.setTimeOpenWhitelistPeriod();
+        });
+
+        it("owner can't record offline sale after start", async function() {
+            await this.crowdsale.offlineSale(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
+        });
+
+        it("does not allow non-beneficiary to do a open whitelist buy", async function() {
+            await this.crowdsale.buyTokens(user1, {from: user2, value: 1}).should.be.rejectedWith(h.EVMThrow);
+        });
+
+        it("does not allow non-whitelisted user to do a open whitelist buy", async function() {
+            await this.crowdsale.buyTokens(user3, {from: user3, value: 1}).should.be.rejectedWith(h.EVMThrow);
+        });
+
+        it("allows a buy over the max during open whitelist period", async function() {
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.plus(1)}).should.be.fulfilled;
+        });
+
+        it("allows double purchasing during the open whitelist period", async function() {
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.div(3)}).should.be.fulfilled;
         });
 
         it('should forward funds to wallet', async function() {
