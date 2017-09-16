@@ -43,18 +43,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     maxWhitelistPurchaseWei = (cap.sub(weiRaised)).div(aw.numUsers());
   }
 
-  function createTokenContract() internal returns (MintableToken) {
-    return new CPToken(endTime);
-  }
-
-  function initTiers(uint256[] _tierRates, uint256[] _tierAmountCaps) private {
-    uint256 highestAmount = _tierAmountCaps[_tierAmountCaps.length.sub(1)];
-    require ( highestAmount == cap );
-    for ( uint i=0; i<_tierAmountCaps.length; i++) {
-      tierRates.push(_tierRates[i]);
-      tierAmountCaps.push(_tierAmountCaps[i]);
-    }
-  }
+  // Public functions
 
   function offlineSale(address beneficiary, uint256 _numTokensNoDec) public onlyOwner {
     uint256 totalOffline = numOfflineTokensNoDec.add(_numTokensNoDec);
@@ -90,6 +79,42 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
 
     forwardFunds();
+  }
+
+  // Internal functions
+
+  function createTokenContract() internal returns (MintableToken) {
+    return new CPToken(endTime);
+  }
+
+  /**
+   * @dev Overriden to add finalization logic.
+   * Mints remaining tokens to dev wallet
+   */
+  function finalization() internal {
+    if ( cap <= weiRaised ) return;
+    uint256 remainingWei = cap.sub(weiRaised);
+    uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised, currTier, 0);
+    token.mint(wallet, remainingDevTokens);
+    super.finalization();
+  }
+
+
+  // Private functions
+
+  function initTiers(uint256[] _tierRates, uint256[] _tierAmountCaps) private {
+    uint256 highestAmount = _tierAmountCaps[_tierAmountCaps.length.sub(1)];
+    require ( highestAmount == cap );
+    for ( uint i=0; i<_tierAmountCaps.length; i++) {
+      tierRates.push(_tierRates[i]);
+      tierAmountCaps.push(_tierAmountCaps[i]);
+    }
+  }
+
+  function setTier(uint256 _weiRaised) private {
+    while( _weiRaised > tierAmountCaps[currTier] ) {
+      currTier = currTier.add(1);
+    }
   }
 
   //can't override because need to pass value
@@ -135,24 +160,6 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     else {
       return calculateTokens(_amountWei.sub(tierAmountLeftWei), _weiRaised.add(tierAmountLeftWei), _tier.add(1), tokenAcc.add(tierAmountLeftWei.mul(currRate)));
     }
-  }
-
-  function setTier(uint256 _weiRaised) private {
-    while( _weiRaised > tierAmountCaps[currTier] ) {
-      currTier = currTier.add(1);
-    }
-  }
-
-  /**
-   * @dev Overriden to add finalization logic.
-   * Mints remaining tokens to dev wallet
-   */
-  function finalization() internal {
-    if ( cap <= weiRaised ) return;
-    uint256 remainingWei = cap.sub(weiRaised);
-    uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised, currTier, 0);
-    token.mint(wallet, remainingDevTokens);
-    super.finalization();
   }
 
 }

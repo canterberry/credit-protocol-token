@@ -26,13 +26,11 @@ contract DPIcoWhitelist {
     isOn = false;
   }
 
-  function getAdmin() public constant returns (address) {
-    return admin;
+  function () {
+    signUp();
   }
 
-  function signUpOn() public constant returns (bool) {
-    return isOn;
-  }
+  // Public functions
 
   function setSignUpOnOff(bool state) public isAdmin {
     isOn = state;
@@ -43,8 +41,12 @@ contract DPIcoWhitelist {
     users.push(msg.sender);
   }
 
-  function () {
-    signUp();
+  function getAdmin() public constant returns (address) {
+    return admin;
+  }
+
+  function signUpOn() public constant returns (bool) {
+    return isOn;
   }
 
   function isSignedUp(address addr) public constant returns (bool) {
