@@ -20,7 +20,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   uint256   public currTier;
 
   AbstractWhitelist private aw;
-  mapping ( address => bool ) private hasPurchased; //has whitelist address purchased already
+  mapping (address => bool) private hasPurchased; //has whitelist address purchased already
   uint256 public whitelistEndTime;
   uint256 public maxWhitelistPurchaseWei;
   uint256 public openWhitelistEndTime;
@@ -34,7 +34,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     numOfflineTokensNoDec = 0;
     offlineSale(_wallet, _numDevTokensNoDec);
     aw = AbstractWhitelist(_whitelistContract);
-    require ( aw.numUsers() > 0 );
+    require (aw.numUsers() > 0);
     currTier = 0;
     whitelistEndTime = _whitelistEndTime;
     openWhitelistEndTime = _openWhitelistEndTime;
@@ -47,15 +47,15 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
   function offlineSale(address beneficiary, uint256 _numTokensNoDec) public onlyOwner {
     uint256 totalOffline = numOfflineTokensNoDec.add(_numTokensNoDec);
-    require ( now < startTime ); //only runs before start of sale
-    require ( !offlineSaleDone );
-    require ( totalOffline <= maxPreTokensNoDec );
+    require (now < startTime); //only runs before start of sale
+    require (!offlineSaleDone);
+    require (totalOffline <= maxPreTokensNoDec);
     numOfflineTokensNoDec = totalOffline;
     token.mint(beneficiary, (_numTokensNoDec.mul(10 ** 18)));
   }
 
   function endOfflineSale() public onlyOwner {
-    require ( !offlineSaleDone );
+    require (!offlineSaleDone);
     offlineSaleDone = true;
   }
 
@@ -92,7 +92,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
    * Mints remaining tokens to dev wallet
    */
   function finalization() internal {
-    if ( cap <= weiRaised ) return;
+    if (cap <= weiRaised) return;
     uint256 remainingWei = cap.sub(weiRaised);
     uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised, currTier, 0);
     token.mint(wallet, remainingDevTokens);
@@ -104,7 +104,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
   function initTiers(uint256[] _tierRates, uint256[] _tierAmountCaps) private {
     uint256 highestAmount = _tierAmountCaps[_tierAmountCaps.length.sub(1)];
-    require ( highestAmount == cap );
+    require (highestAmount == cap);
     for ( uint i=0; i<_tierAmountCaps.length; i++) {
       tierRates.push(_tierRates[i]);
       tierAmountCaps.push(_tierAmountCaps[i]);
@@ -112,30 +112,30 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   }
 
   function setTier(uint256 _weiRaised) private {
-    while( _weiRaised > tierAmountCaps[currTier] ) {
+    while(_weiRaised > tierAmountCaps[currTier]) {
       currTier = currTier.add(1);
     }
   }
 
   //can't override because need to pass value
   function whitelistValidPurchase(address buyer, address beneficiary, uint256 amountWei) private constant returns (bool) {
-    if ( isWhitelistPeriod() ) {
-      if ( buyer != beneficiary )                return false;
-      if ( hasPurchased[beneficiary] )           return false;
-      if ( !aw.isSignedUp(beneficiary) )         return false;
-      if ( amountWei > maxWhitelistPurchaseWei ) return false;
+    if (isWhitelistPeriod()) {
+      if (buyer != beneficiary)                return false;
+      if (hasPurchased[beneficiary])           return false;
+      if (!aw.isSignedUp(beneficiary))         return false;
+      if (amountWei > maxWhitelistPurchaseWei) return false;
     }
     return true;
   }
 
   function isWhitelistPeriod() private constant returns (bool) {
-    return ( now <= whitelistEndTime );
+    return (now <= whitelistEndTime);
   }
 
   function openWhitelistValidPurchase(address buyer, address beneficiary) private constant returns (bool) {
-    if ( isOpenWhitelistPeriod() ) {
-      if ( buyer != beneficiary )         return false;
-      if ( !aw.isSignedUp(beneficiary) )  return false;
+    if (isOpenWhitelistPeriod()) {
+      if (buyer != beneficiary)         return false;
+      if (!aw.isSignedUp(beneficiary))  return false;
     }
     return true;
   }
@@ -154,7 +154,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   function calculateTokens(uint256 _amountWei, uint256 _weiRaised, uint256 _tier, uint256 tokenAcc) private constant returns (uint256) {
     uint256 currRate = tierRates[_tier];
     uint256 tierAmountLeftWei = tierAmountCaps[_tier].sub(_weiRaised);
-    if ( _amountWei <= tierAmountLeftWei ) {
+    if (_amountWei <= tierAmountLeftWei) {
       return tokenAcc.add(_amountWei.mul(currRate));
     }
     else {

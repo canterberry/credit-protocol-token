@@ -3,21 +3,21 @@ pragma solidity 0.4.15;
 contract DPIcoWhitelist {
   address public admin;
   bool public isOn;
-  mapping ( address => bool ) public whitelist;
+  mapping (address => bool) public whitelist;
   address[] public users;
 
   modifier signUpOpen() {
-    if ( ! isOn ) revert();
+    if (!isOn) revert();
     _;
   }
 
   modifier isAdmin() {
-    if ( msg.sender != admin ) revert();
+    if (msg.sender != admin) revert();
     _;
   }
 
   modifier newAddr() {
-    if ( whitelist[msg.sender] ) revert();
+    if (whitelist[msg.sender]) revert();
     _;
   }
 
