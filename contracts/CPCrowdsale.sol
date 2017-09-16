@@ -19,11 +19,11 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   uint256[] public tierAmountCaps;
   uint256   public currTier;
 
-  AbstractWhitelist aw;
-  mapping ( address => bool ) hasPurchased; //has whitelist address purchased already
-  uint256 whitelistEndTime;
+  AbstractWhitelist private aw;
+  mapping ( address => bool ) private hasPurchased; //has whitelist address purchased already
+  uint256 public whitelistEndTime;
   uint256 public maxWhitelistPurchaseWei;
-  uint256 openWhitelistEndTime;
+  uint256 public openWhitelistEndTime;
 
   function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, uint256 _cap, uint256[] _tierRates, uint256[] _tierAmountCaps, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec, uint256 _maxOfflineTokensNoDec)
     CappedCrowdsale(_cap)
@@ -56,7 +56,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     }
   }
 
-  function offlineSale(address beneficiary, uint256 _numTokensNoDec) onlyOwner {
+  function offlineSale(address beneficiary, uint256 _numTokensNoDec) public onlyOwner {
     uint256 totalOffline = numOfflineTokensNoDec.add(_numTokensNoDec);
     require ( now < startTime ); //only runs before start of sale
     require ( !offlineSaleDone );
@@ -65,12 +65,12 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     token.mint(beneficiary, (_numTokensNoDec.mul(10 ** 18)));
   }
 
-  function endOfflineSale() onlyOwner {
+  function endOfflineSale() public onlyOwner {
     require ( !offlineSaleDone );
     offlineSaleDone = true;
   }
 
-  function buyTokens(address beneficiary) payable {
+  function buyTokens(address beneficiary) public payable {
     uint256 weiAmount = msg.value;
 
     require(beneficiary != 0x0);
@@ -93,7 +93,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   }
 
   //can't override because need to pass value
-  function whitelistValidPurchase(address buyer, address beneficiary, uint256 amountWei) constant returns (bool) {
+  function whitelistValidPurchase(address buyer, address beneficiary, uint256 amountWei) private constant returns (bool) {
     if ( isWhitelistPeriod() ) {
       if ( buyer != beneficiary )                return false;
       if ( hasPurchased[beneficiary] )           return false;
@@ -103,11 +103,11 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     return true;
   }
 
-  function isWhitelistPeriod() constant returns (bool) {
+  function isWhitelistPeriod() private constant returns (bool) {
     return ( now <= whitelistEndTime );
   }
 
-  function openWhitelistValidPurchase(address buyer, address beneficiary) constant returns (bool) {
+  function openWhitelistValidPurchase(address buyer, address beneficiary) private constant returns (bool) {
     if ( isOpenWhitelistPeriod() ) {
       if ( buyer != beneficiary )         return false;
       if ( !aw.isSignedUp(beneficiary) )  return false;
@@ -115,7 +115,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     return true;
   }
 
-  function isOpenWhitelistPeriod() constant returns (bool) {
+  function isOpenWhitelistPeriod() private constant returns (bool) {
     bool cappedWhitelistOver = now > whitelistEndTime;
     bool openWhitelistPeriod = now <= openWhitelistEndTime;
     return cappedWhitelistOver && openWhitelistPeriod;
@@ -126,7 +126,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
    * Takes into account tiers of purchase bonus
    * Recursive, but depth is limited to the number of tiers, which is 6
    */
-  function calculateTokens(uint256 _amountWei, uint256 _weiRaised, uint256 _tier, uint256 tokenAcc) constant returns (uint256) {
+  function calculateTokens(uint256 _amountWei, uint256 _weiRaised, uint256 _tier, uint256 tokenAcc) private constant returns (uint256) {
     uint256 currRate = tierRates[_tier];
     uint256 tierAmountLeftWei = tierAmountCaps[_tier].sub(_weiRaised);
     if ( _amountWei <= tierAmountLeftWei ) {
