@@ -92,7 +92,6 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
    * Mints remaining tokens to dev wallet
    */
   function finalization() internal {
-    if (cap <= weiRaised) return;
     uint256 remainingWei = cap.sub(weiRaised);
     uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised, currTier, 0);
     token.mint(wallet, remainingDevTokens);
