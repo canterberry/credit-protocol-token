@@ -1,23 +1,23 @@
 pragma solidity 0.4.15;
 
 contract DPIcoWhitelist {
-  address admin;
-  bool isOn;
-  mapping ( address => bool ) whitelist;
-  address[] users;
+  address public admin;
+  bool public isOn;
+  mapping (address => bool) public whitelist;
+  address[] public users;
 
   modifier signUpOpen() {
-    if ( ! isOn ) revert();
+    if (!isOn) revert();
     _;
   }
 
   modifier isAdmin() {
-    if ( msg.sender != admin ) revert();
+    if (msg.sender != admin) revert();
     _;
   }
 
   modifier newAddr() {
-    if ( whitelist[msg.sender] ) revert();
+    if (whitelist[msg.sender]) revert();
     _;
   }
 
@@ -26,13 +26,11 @@ contract DPIcoWhitelist {
     isOn = false;
   }
 
-  function getAdmin() constant returns (address) {
-    return admin;
+  function () {
+    signUp();
   }
 
-  function signUpOn() constant returns (bool) {
-    return isOn;
-  }
+  // Public functions
 
   function setSignUpOnOff(bool state) public isAdmin {
     isOn = state;
@@ -43,23 +41,27 @@ contract DPIcoWhitelist {
     users.push(msg.sender);
   }
 
-  function () {
-    signUp();
+  function getAdmin() public constant returns (address) {
+    return admin;
   }
 
-  function isSignedUp(address addr) constant returns (bool) {
+  function signUpOn() public constant returns (bool) {
+    return isOn;
+  }
+
+  function isSignedUp(address addr) public constant returns (bool) {
     return whitelist[addr];
   }
 
-  function getUsers() constant returns (address[]) {
+  function getUsers() public constant returns (address[]) {
     return users;
   }
 
-  function numUsers() constant returns (uint) {
+  function numUsers() public constant returns (uint) {
     return users.length;
   }
 
-  function userAtIndex(uint idx) constant returns (address) {
+  function userAtIndex(uint idx) public constant returns (address) {
     return users[idx];
   }
 }

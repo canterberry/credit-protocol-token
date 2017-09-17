@@ -17,8 +17,8 @@ contract CPToken is MintableToken, LimitedTransferToken {
   /**
    * @dev returns all user's tokens if time >= releaseTime
    */
-  function transferableTokens(address holder, uint64 time) constant public returns (uint256) {
-    if ( time >= releaseTime )
+  function transferableTokens(address holder, uint64 time) public constant returns (uint256) {
+    if (time >= releaseTime)
       return balanceOf(holder);
     else
       return 0;
