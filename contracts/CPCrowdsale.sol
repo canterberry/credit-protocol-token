@@ -73,8 +73,6 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
     hasPurchased[beneficiary] = true;
 
-    //setTier() and calculateTokens are safe to call because validPurchase checks
-    //for the cap to be passed or not
     uint256 tokens = calculateTokens(weiAmount, weiRaised, currTier, 0);
     weiRaised = weiRaised.add(weiAmount);
     setTier(weiRaised);
@@ -106,8 +104,9 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   // Private functions
 
   function initTiers(uint256[] _tierRates, uint256[] _tierAmountCaps) private {
-    uint256 highestAmount = _tierAmountCaps[_tierAmountCaps.length.sub(1)];
-    require (highestAmount == cap);
+    require(_tierAmountCaps.length == numTiers);
+    require(_tierRates.length == numTiers);
+    require (_tierAmountCaps[numTiers.sub(1)] == cap);
     for (uint i=0; i < _tierAmountCaps.length; i++) {
       tierRates.push(_tierRates[i]);
       tierAmountCaps.push(_tierAmountCaps[i]);
@@ -155,6 +154,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
    * Recursive, but depth is limited to the number of tiers, which is 6
    */
   function calculateTokens(uint256 _amountWei, uint256 _weiRaised, uint256 _tier, uint256 tokenAcc) private constant returns (uint256) {
+    assert(_tier < numTiers);
     uint256 currRate = tierRates[_tier];
     uint256 tierAmountLeftWei = tierAmountCaps[_tier].sub(_weiRaised);
     if (_amountWei <= tierAmountLeftWei) {
