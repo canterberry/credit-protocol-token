@@ -15,8 +15,10 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   uint public numOfflineTokensNoDec;
 
   uint256   public constant numTiers = 6;
-  uint256[] public tierRates;
-  uint256[] public tierAmountCaps;
+  uint256[] public tierRates; // Tokens are purchased at a rate of 1050-1500
+                              // per Eth, depending on purchase tier.
+                              // tierRates[i] is the purchase rate of tier_i
+  uint256[] public tierAmountCaps; // tierAmounCaps[i] defines upper boundry of tier_i
   uint256   public currTier;
 
   AbstractWhitelist private aw;
@@ -119,7 +121,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     }
   }
 
-  // can't override because need to pass value
+  // can't override `validPurchase` because need to pass additional values
   function whitelistValidPurchase(address buyer, address beneficiary, uint256 amountWei) private constant returns (bool) {
     bool beneficiaryPurchasedPreviously = hasPurchased[beneficiary];
     bool belowMaxWhitelistPurchase = amountWei <= maxWhitelistPurchaseWei;
@@ -133,6 +135,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     return (now <= whitelistEndTime && now >= startTime);
   }
 
+  // can't override `validPurchase` because need to pass additional values
   function openWhitelistValidPurchase(address buyer, address beneficiary) private constant returns (bool) {
     bool buyerIsBeneficiary = buyer == beneficiary;
     bool signedup = aw.isSignedUp(beneficiary);
