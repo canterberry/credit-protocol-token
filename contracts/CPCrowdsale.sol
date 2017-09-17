@@ -14,6 +14,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   uint public maxPreTokensNoDec;
   uint public numOfflineTokensNoDec;
 
+  uint256   public constant dummyRate = 1;
   uint256   public constant numTiers = 6;
   uint256[] public tierRates; // Tokens are purchased at a rate of 1050-1500
                               // per Eth, depending on purchase tier.
@@ -30,7 +31,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, uint256 _cap, uint256[] _tierRates, uint256[] _tierAmountCaps, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec, uint256 _maxOfflineTokensNoDec)
     CappedCrowdsale(_cap)
     FinalizableCrowdsale()
-    Crowdsale(_startTime, _endTime, 1, _wallet)  //rate is a dummy value; we use tiers instead
+    Crowdsale(_startTime, _endTime, dummyRate, _wallet)  // rate is a dummy value; we use tiers instead
   {
     maxPreTokensNoDec = _numDevTokensNoDec.add(_maxOfflineTokensNoDec);
     numOfflineTokensNoDec = 0;
