@@ -18,7 +18,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   uint256[] public tierRates; // Tokens are purchased at a rate of 1050-1500
                               // per Eth, depending on purchase tier.
                               // tierRates[i] is the purchase rate of tier_i
-  uint256[] public tierAmountCaps; // tierAmounCaps[i] defines upper boundry of tier_i
+  uint256[] public tierAmountCaps; // tierAmountCaps[i] defines upper boundry of tier_i
   uint256   public currTier;
 
   AbstractWhitelist private aw;
