@@ -47,7 +47,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
 
   function offlineSale(address beneficiary, uint256 _numTokensNoDec) public onlyOwner {
     uint256 totalOffline = numOfflineTokensNoDec.add(_numTokensNoDec);
-    require (now < startTime); //only runs before start of sale
+    require (now < startTime); // only runs before start of sale
     require (!offlineSaleDone);
     require (totalOffline <= maxPreTokensNoDec);
     numOfflineTokensNoDec = totalOffline;
@@ -106,7 +106,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   function initTiers(uint256[] _tierRates, uint256[] _tierAmountCaps) private {
     uint256 highestAmount = _tierAmountCaps[_tierAmountCaps.length.sub(1)];
     require (highestAmount == cap);
-    for ( uint i=0; i<_tierAmountCaps.length; i++) {
+    for (uint i=0; i < _tierAmountCaps.length; i++) {
       tierRates.push(_tierRates[i]);
       tierAmountCaps.push(_tierAmountCaps[i]);
     }
@@ -115,10 +115,11 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   function setTier(uint256 _weiRaised) private {
     while(_weiRaised > tierAmountCaps[currTier]) {
       currTier = currTier.add(1);
+      assert(currTier < numTiers);
     }
   }
 
-  //can't override because need to pass value
+  // can't override because need to pass value
   function whitelistValidPurchase(address buyer, address beneficiary, uint256 amountWei) private constant returns (bool) {
     bool beneficiaryPurchasedPreviously = hasPurchased[beneficiary];
     bool belowMaxWhitelistPurchase = amountWei <= maxWhitelistPurchaseWei;
@@ -127,6 +128,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
             && belowMaxWhitelistPurchase);
   }
 
+  // @return true if `now` is within the bounds of the whitelist period
   function isWhitelistPeriod() private constant returns (bool) {
     return (now <= whitelistEndTime && now >= startTime);
   }
@@ -137,6 +139,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     return (buyerIsBeneficiary && signedup);
   }
 
+  // @return true if `now` is within the bounds of the open whitelist period
   function isOpenWhitelistPeriod() private constant returns (bool) {
     bool cappedWhitelistOver = now > whitelistEndTime;
     bool openWhitelistPeriod = now <= openWhitelistEndTime;
