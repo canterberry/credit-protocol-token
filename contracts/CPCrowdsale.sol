@@ -6,8 +6,9 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 import 'zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 
-contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
+contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
   using SafeMath for uint256;
 
   bool public offlineSaleDone; // when true, owner can no longer pre-mint
