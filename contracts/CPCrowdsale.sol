@@ -100,6 +100,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised, currTier, 0);
     token.mint(wallet, remainingDevTokens);
     CPToken(token).endSale();
+    token.finishMinting();
     super.finalization();
   }
 
