@@ -63,7 +63,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     offlineSaleDone = true;
   }
 
-  function buyTokens(address beneficiary) public payable {
+  function buyTokens(address beneficiary) public payable whenNotPaused {
     uint256 weiAmount = msg.value;
 
     require(beneficiary != 0x0);
