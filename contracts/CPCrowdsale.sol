@@ -6,8 +6,9 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 import 'zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 
-contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
+contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
   using SafeMath for uint256;
 
   bool public offlineSaleDone; // when true, owner can no longer pre-mint
@@ -62,7 +63,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     offlineSaleDone = true;
   }
 
-  function buyTokens(address beneficiary) public payable {
+  function buyTokens(address beneficiary) public payable whenNotPaused {
     uint256 weiAmount = msg.value;
 
     require(beneficiary != 0x0);
@@ -98,6 +99,8 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     uint256 remainingWei = cap.sub(weiRaised);
     uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised, currTier, 0);
     token.mint(wallet, remainingDevTokens);
+    CPToken(token).endSale();
+    token.finishMinting();
     super.finalization();
   }
 
