@@ -10,7 +10,7 @@ import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   using SafeMath for uint256;
 
-  bool public offlineSaleDone; //when true, owner can no longer pre-mint
+  bool public offlineSaleDone; // when true, owner can no longer pre-mint
   uint public maxPreTokensNoDec;
   uint public numOfflineTokensNoDec;
 
@@ -23,7 +23,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
   uint256   public currTier;
 
   AbstractWhitelist private aw;
-  mapping (address => bool) private hasPurchased; //has whitelist address purchased already
+  mapping (address => bool) private hasPurchased; // has whitelist address purchased already
   uint256 public whitelistEndTime;
   uint256 public maxWhitelistPurchaseWei;
   uint256 public openWhitelistEndTime;
