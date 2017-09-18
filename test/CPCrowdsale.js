@@ -228,6 +228,15 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
             await this.crowdsale.buyTokens(user1, {from: user2, value: h.e2Wei(1)}).should.be.fulfilled;
         });
 
+        it("allows finalization of contract and release of tokens once cap is reached", async function() {
+            const weiRaised = await this.crowdsale.weiRaised();
+            await this.crowdsale.buyTokens(user1, {from: user1, value: (cap - weiRaised)}).should.be.fulfilled;
+            await this.token.endSale({from: owner}).should.be.rejectedWith(h.EVMThrow);
+            await this.crowdsale.finalize({from: owner}).should.be.fulfilled;
+            const transferableTokens = await this.token.transferableTokens(user1, 0);
+            transferableTokens.should.be.bignumber.greaterThan(0);
+        });
+
         it('should forward funds to wallet', async function() {
             const buySize = h.e2Wei(10000);
             const pre = web3.eth.getBalance(wallet);
