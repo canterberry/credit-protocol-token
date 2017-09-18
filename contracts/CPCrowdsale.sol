@@ -109,8 +109,10 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale {
     require(_tierRates.length == numTiers);
     require (_tierAmountCaps[numTiers.sub(1)] == cap);
     for (uint i=0; i < _tierAmountCaps.length; i++) {
-      tierRates.push(_tierRates[i]);
+      // every successive tierCap should be greater than the last
+      require(i == 0 || tierAmountCaps[i.sub(1)] < _tierAmountCaps[i]);
       tierAmountCaps.push(_tierAmountCaps[i]);
+      tierRates.push(_tierRates[i]);
     }
   }
 
