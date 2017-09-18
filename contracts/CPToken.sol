@@ -5,7 +5,7 @@ import 'zeppelin-solidity/contracts/token/LimitedTransferToken.sol';
 
 contract CPToken is MintableToken, LimitedTransferToken {
   string public name = "CREDIT PROTOCOL TOKEN";
-  string public symbol = "CPT";
+  string public symbol = "BCPT";
   uint256 public decimals = 18;
 
   uint256 public releaseTime;
