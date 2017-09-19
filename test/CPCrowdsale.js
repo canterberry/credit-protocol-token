@@ -218,6 +218,7 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
 
         it("allows owner to pause buys", async function() {
             await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy}).should.be.fulfilled;
+            await this.crowdsale.pause({from: user1}).should.be.rejectedWith(h.EVMThrow);
             await this.crowdsale.pause({from: owner});
             await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy}).should.be.rejectedWith(h.EVMThrow);
             await this.crowdsale.unpause({from: owner});
