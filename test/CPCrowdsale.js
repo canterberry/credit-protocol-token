@@ -13,7 +13,9 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
     const numDevTokensNoDec     = new h.BigNumber(23231733); //23M+
     const maxOfflineTokensNoDec = new h.BigNumber(36000000); //36M
 
-    const startingWeiSold = h.toWei(1296, "ether");
+    // todo eliminate
+    const startingWeiSold = h.toWei(18000, "ether");
+    // todo eliminate
     const cap = h.toWei(45000, "ether");
 
     before(async function() {
@@ -42,7 +44,7 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         await this.whitelist.signUp({from: user1});
         await this.whitelist.signUp({from: user2});
 
-        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, this.openWhitelistEndTime, wallet, this.whitelist.address, startingWeiSold, numDevTokensNoDec, maxOfflineTokensNoDec, {from: owner});
+        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, this.openWhitelistEndTime, wallet, this.whitelist.address, numDevTokensNoDec, maxOfflineTokensNoDec, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });

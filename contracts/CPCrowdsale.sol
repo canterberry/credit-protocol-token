@@ -12,26 +12,30 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     using SafeMath for uint256;
 
     bool public offlineSaleDone; // when true, owner can no longer pre-mint
-    uint public maxPreTokensNoDec;
     uint public numOfflineTokensNoDec;
 
     uint256 public cpCap = 45000 ether;
     uint256 public constant dummyRate = 1;
 
+    uint256 public presaleWeiSold = 18000 ether;
+    uint256 public totalTokens = 116158667;
+    uint256 public publicTokens = 33695200;
+    uint256 public initialOwnerTokens = totalTokens - publicTokens;
+
     uint256 public currTier;
     uint256 public constant numTiers = 6;
-    uint256[6] public tierAmountCaps =  [ 5000 ether // tierAmountCaps[i] defines upper boundry of tier_i
-                                        , 10000 ether
-                                        , 20000 ether
-                                        , 30000 ether
-                                        , 40000 ether
+    uint256[6] public tierAmountCaps =  [ presaleWeiSold
+                                        , presaleWeiSold + 5000 ether
+                                        , presaleWeiSold + 10000 ether
+                                        , presaleWeiSold + 15000 ether
+                                        , presaleWeiSold + 21000 ether
                                         , cpCap
                                         ];
-    uint256[6] public tierRates = [ 1500 // Tokens are purchased at a rate of 1050-1500
+    uint256[6] public tierRates = [ 2000 // tierRates[0] should never be used, but it is accurate
+                                  , 1500 // Tokens are purchased at a rate of 1050-1500
                                   , 1350 // per Eth, depending on purchase tier.
                                   , 1250 // tierRates[i] is the purchase rate of tier_i
                                   , 1150
-                                  , 1100
                                   , 1050
                                   ];
 
@@ -41,38 +45,24 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     uint256 public maxWhitelistPurchaseWei;
     uint256 public openWhitelistEndTime;
 
-    function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec, uint256 _maxOfflineTokensNoDec)
+    function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, address _whitelistContract)
         CappedCrowdsale(cpCap)
         FinalizableCrowdsale()
         Crowdsale(_startTime, _endTime, dummyRate, _wallet)  // rate is a dummy value; we use tiers instead
     {
-        maxPreTokensNoDec = _numDevTokensNoDec.add(_maxOfflineTokensNoDec);
         numOfflineTokensNoDec = 0;
-        offlineSale(_wallet, _numDevTokensNoDec);
+        token.mint(_wallet, initialOwnerTokens);
         aw = AbstractWhitelist(_whitelistContract);
         require (aw.numUsers() > 0);
         currTier = 0;
         whitelistEndTime = _whitelistEndTime;
         openWhitelistEndTime = _openWhitelistEndTime;
-        weiRaised = _startingWeiSold;
+        weiRaised = presaleWeiSold;
+        setTier(weiRaised);
         maxWhitelistPurchaseWei = (cap.sub(weiRaised)).div(aw.numUsers());
     }
 
     // Public functions
-
-    function offlineSale(address beneficiary, uint256 _numTokensNoDec) public onlyOwner {
-        uint256 totalOffline = numOfflineTokensNoDec.add(_numTokensNoDec);
-        require (now < startTime); // only runs before start of sale
-        require (!offlineSaleDone);
-        require (totalOffline <= maxPreTokensNoDec);
-        numOfflineTokensNoDec = totalOffline;
-        token.mint(beneficiary, (_numTokensNoDec.mul(10 ** 18)));
-    }
-
-    function endOfflineSale() public onlyOwner {
-        require (!offlineSaleDone);
-        offlineSaleDone = true;
-    }
 
     function buyTokens(address beneficiary) public payable whenNotPaused {
         uint256 weiAmount = msg.value;
