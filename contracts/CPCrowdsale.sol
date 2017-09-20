@@ -17,11 +17,23 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
 
   uint256   public constant dummyRate = 1;
   uint256   public constant numTiers = 6;
-  uint256[] public tierRates; // Tokens are purchased at a rate of 1050-1500
-                              // per Eth, depending on purchase tier.
-                              // tierRates[i] is the purchase rate of tier_i
-  uint256[] public tierAmountCaps; // tierAmountCaps[i] defines upper boundry of tier_i
   uint256   public currTier;
+
+  uint256[] public tierAmountCaps =  [ 5000 ether // tierAmountCaps[i] defines upper boundry of tier_i
+                                     , 10000 ether
+                                     , 20000 ether
+                                     , 30000 ether
+                                     , 40000 ether
+                                     , 45000 ether
+                                     ];
+
+  uint256[] public tierRates = [ 1500 // Tokens are purchased at a rate of 1050-1500
+                               , 1350 // per Eth, depending on purchase tier.
+                               , 1250 // tierRates[i] is the purchase rate of tier_i
+                               , 1150
+                               , 1100
+                               , 1050
+                               ];
 
   AbstractWhitelist private aw;
   mapping (address => bool) private hasPurchased; // has whitelist address purchased already
@@ -29,7 +41,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
   uint256 public maxWhitelistPurchaseWei;
   uint256 public openWhitelistEndTime;
 
-  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, uint256 _cap, uint256[] _tierRates, uint256[] _tierAmountCaps, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec, uint256 _maxOfflineTokensNoDec)
+  function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, uint256 _cap, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec, uint256 _maxOfflineTokensNoDec)
     CappedCrowdsale(_cap)
     FinalizableCrowdsale()
     Crowdsale(_startTime, _endTime, dummyRate, _wallet)  // rate is a dummy value; we use tiers instead
@@ -42,7 +54,6 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     currTier = 0;
     whitelistEndTime = _whitelistEndTime;
     openWhitelistEndTime = _openWhitelistEndTime;
-    initTiers(_tierRates, _tierAmountCaps);
     weiRaised = _startingWeiSold;
     maxWhitelistPurchaseWei = (cap.sub(weiRaised)).div(aw.numUsers());
   }
@@ -106,18 +117,6 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
 
 
   // Private functions
-
-  function initTiers(uint256[] _tierRates, uint256[] _tierAmountCaps) private {
-    require(_tierAmountCaps.length == numTiers);
-    require(_tierRates.length == numTiers);
-    require (_tierAmountCaps[numTiers.sub(1)] == cap);
-    for (uint i=0; i < _tierAmountCaps.length; i++) {
-      // every successive tierCap should be greater than the last
-      require(i == 0 || tierAmountCaps[i.sub(1)] < _tierAmountCaps[i]);
-      tierAmountCaps.push(_tierAmountCaps[i]);
-      tierRates.push(_tierRates[i]);
-    }
-  }
 
   function setTier(uint256 _weiRaised) private {
     while(_weiRaised > tierAmountCaps[currTier]) {

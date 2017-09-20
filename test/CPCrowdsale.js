@@ -42,7 +42,7 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         await this.whitelist.signUp({from: user1});
         await this.whitelist.signUp({from: user2});
 
-        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, this.openWhitelistEndTime, wallet, cap, tierRates(), tierAmountCaps(), this.whitelist.address, startingWeiSold, numDevTokensNoDec, maxOfflineTokensNoDec, {from: owner});
+        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, this.openWhitelistEndTime, wallet, cap, this.whitelist.address, startingWeiSold, numDevTokensNoDec, maxOfflineTokensNoDec, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
