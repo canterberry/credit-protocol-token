@@ -1,4 +1,4 @@
-# CPToken Crowdsale
+# CPToken Crowdsale (BCPT)
 
 ## Audit Reports
 [01 First Audit Report](audit.md)
