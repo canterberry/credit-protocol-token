@@ -1,7 +1,7 @@
 # CPToken Crowdsale
 
-## 1st Audit Report
-[Audit #1](audit.md)
+## Audit Reports
+[01 First Audit Report](audit.md)
 
 ## Solidity Compiler Config
 
