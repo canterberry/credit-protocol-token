@@ -15,10 +15,11 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     uint public maxPreTokensNoDec;
     uint public numOfflineTokensNoDec;
 
-    uint256   public constant dummyRate = 1;
+    uint256 public cpCap = 45000 ether;
+    uint256 public constant dummyRate = 1;
 
-    uint256   public currTier;
-    uint256   public constant numTiers = 6;
+    uint256 public currTier;
+    uint256 public constant numTiers = 6;
     uint256[6] public tierAmountCaps =  [ 5000 ether // tierAmountCaps[i] defines upper boundry of tier_i
                                         , 10000 ether
                                         , 20000 ether
@@ -40,8 +41,8 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     uint256 public maxWhitelistPurchaseWei;
     uint256 public openWhitelistEndTime;
 
-    function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, uint256 _cap, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec, uint256 _maxOfflineTokensNoDec)
-        CappedCrowdsale(_cap)
+    function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec, uint256 _maxOfflineTokensNoDec)
+        CappedCrowdsale(cpCap)
         FinalizableCrowdsale()
         Crowdsale(_startTime, _endTime, dummyRate, _wallet)  // rate is a dummy value; we use tiers instead
     {
