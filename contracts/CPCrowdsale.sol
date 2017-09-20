@@ -25,7 +25,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
                                         , 20000 ether
                                         , 30000 ether
                                         , 40000 ether
-                                        , 45000 ether
+                                        , cpCap
                                         ];
     uint256[6] public tierRates = [ 1500 // Tokens are purchased at a rate of 1050-1500
                                   , 1350 // per Eth, depending on purchase tier.
