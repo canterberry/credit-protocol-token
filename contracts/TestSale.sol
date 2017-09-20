@@ -13,16 +13,16 @@ import 'zeppelin-solidity/contracts/crowdsale/Crowdsale.sol';
 import 'zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol';
 
 contract TestSale is CappedCrowdsale, FinalizableCrowdsale {
-  using SafeMath for uint256;
+    using SafeMath for uint256;
 
-  function TestSale(uint256 _startTime, uint256 _endTime, uint256 _rate, address _wallet, uint256 _cap)
-    CappedCrowdsale(_cap)
-    Crowdsale(_startTime, _endTime, _rate, _wallet)
-    FinalizableCrowdsale()
-  {
-  }
+    function TestSale(uint256 _startTime, uint256 _endTime, uint256 _rate, address _wallet, uint256 _cap)
+        CappedCrowdsale(_cap)
+        Crowdsale(_startTime, _endTime, _rate, _wallet)
+        FinalizableCrowdsale()
+    {
+    }
 
-  function createTokenContract() internal returns (MintableToken) {
-    return new CPToken(endTime);
-  }
+    function createTokenContract() internal returns (MintableToken) {
+        return new CPToken(endTime);
+    }
 }
