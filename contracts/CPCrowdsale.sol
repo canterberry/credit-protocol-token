@@ -16,24 +16,23 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
   uint public numOfflineTokensNoDec;
 
   uint256   public constant dummyRate = 1;
-  uint256   public constant numTiers = 6;
+
   uint256   public currTier;
-
-  uint256[] public tierAmountCaps =  [ 5000 ether // tierAmountCaps[i] defines upper boundry of tier_i
-                                     , 10000 ether
-                                     , 20000 ether
-                                     , 30000 ether
-                                     , 40000 ether
-                                     , 45000 ether
-                                     ];
-
-  uint256[] public tierRates = [ 1500 // Tokens are purchased at a rate of 1050-1500
-                               , 1350 // per Eth, depending on purchase tier.
-                               , 1250 // tierRates[i] is the purchase rate of tier_i
-                               , 1150
-                               , 1100
-                               , 1050
-                               ];
+  uint256   public constant numTiers = 6;
+  uint256[6] public tierAmountCaps =  [ 5000 ether // tierAmountCaps[i] defines upper boundry of tier_i
+                                      , 10000 ether
+                                      , 20000 ether
+                                      , 30000 ether
+                                      , 40000 ether
+                                      , 45000 ether
+                                      ];
+  uint256[6] public tierRates = [ 1500 // Tokens are purchased at a rate of 1050-1500
+                                , 1350 // per Eth, depending on purchase tier.
+                                , 1250 // tierRates[i] is the purchase rate of tier_i
+                                , 1150
+                                , 1100
+                                , 1050
+                                ];
 
   AbstractWhitelist private aw;
   mapping (address => bool) private hasPurchased; // has whitelist address purchased already
