@@ -1,5 +1,8 @@
 # CPToken Crowdsale
 
+## 1st Audit Report
+[Audit #1](audit.md)
+
 ## Solidity Compiler Config
 
 - version: 0.4.15
