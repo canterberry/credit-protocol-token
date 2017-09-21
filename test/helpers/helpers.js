@@ -101,10 +101,6 @@ exports.tokenToDec = function(tokenAmt) {
     return web3.toWei(tokenAmt, "ether");
 };
 
-exports.roundToDecieth = function(wei) {
-    return wei.sub(wei.mod((new BigNumber(10)).pow(17)));
-};
-
 // non-recursive implementation of `calculateTokens` function in
 // `CPCrowdsale.sol`, written in JS
 exports.calculateTokens = function(tiers, startWei, weiAmt) {

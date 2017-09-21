@@ -9,12 +9,11 @@ const CPCrowdsale = artifacts.require('./helpers/CPCrowdsale.sol');
 const CPToken = artifacts.require("./CPToken.sol");
 const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
-const deciEth = new h.BigNumber(h.toWei(1, "ether") / 10);
 const presaleEthersold = 18000
 const presaleWeiSold = new h.BigNumber(h.toWei(presaleEthersold, "ether"));
 
 contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
-    const privateTokens = new h.BigNumber(116158667 - 33695200);
+    const privateTokens = (new h.BigNumber(116158667 - 33700000)).mul((new h.BigNumber(10)).pow(18));
 
     before(async function() {
         // Advance to the next block to correctly read time in the solidity
@@ -44,8 +43,8 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
 
         this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, this.openWhitelistEndTime, wallet, this.whitelist.address, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
-        this.maxWhitelistBuy = h.roundToDecieth(new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf()));
-        this.roundedThirdMaxWhitelistBuy = h.roundToDecieth(this.maxWhitelistBuy.div(3));
+        this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
+        this.thirdMaxWhitelistBuy = this.maxWhitelistBuy.div(3);
         this.cap = new h.BigNumber((await this.crowdsale.cap()).valueOf());
 
     });
@@ -78,8 +77,8 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         it("calculates whitelist max purchase correctly", async function() {
             const whitelistSize = new h.BigNumber((await this.whitelist.numUsers()).valueOf());
             const cap = new h.BigNumber((await this.crowdsale.cap()).valueOf());
-            console.log((cap.sub(presaleWeiSold)).divToInt(whitelistSize));
-            console.log(this.maxWhitelistBuy);
+            // in the initialization maxWhitelistBuy was set to the value
+            // defined in the crowdsale contract's initialization
             this.maxWhitelistBuy.should.be.bignumber.equal((cap.sub(presaleWeiSold)).divToInt(whitelistSize));
         });
 
@@ -137,7 +136,7 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         });
 
         it("allows a buy over the max during open whitelist period", async function() {
-            await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.plus(deciEth)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.plus(1)}).should.be.fulfilled;
         });
 
         it("allows double purchasing during the open whitelist period", async function() {
@@ -167,23 +166,25 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         it("buy cap results in proper amount of tokens created", async function() {
             const weiRaised = new h.BigNumber((await this.crowdsale.weiRaised()).valueOf());
             await this.crowdsale.buyTokens(user1, {from: user1, value: this.cap.sub(weiRaised)}).should.be.fulfilled;
+            const saleOver = await this.crowdsale.hasEnded({from: user1});
+            console.log(saleOver);
             await this.token.endSale({from: owner}).should.be.rejectedWith(h.EVMThrow);
             await this.crowdsale.finalize({from: owner}).should.be.fulfilled;
             const transferableTokens = await this.token.transferableTokens(user1, 0);
             transferableTokens.should.be.bignumber.greaterThan(0);
 
             const totalSupply = new h.BigNumber((await this.token.totalSupply()).valueOf());
-            totalSupply.should.be.bignumber.equal(116158667);
+            totalSupply.should.be.bignumber.equal(h.e2Wei(116158667));
         });
 
 
         it("allows buy over the max", async function() {
-            await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.plus(deciEth)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy.plus(1)}).should.be.fulfilled;
         });
 
         it("allows double purchasing", async function() {
-            await this.crowdsale.buyTokens(user1, {from: user1, value: this.roundedThirdMaxWhitelistBuy}).should.be.fulfilled;
-            await this.crowdsale.buyTokens(user1, {from: user1, value: this.roundedThirdMaxWhitelistBuy}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.thirdMaxWhitelistBuy}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.thirdMaxWhitelistBuy}).should.be.fulfilled;
         });
 
         it("allows owner to pause buys", async function() {
@@ -202,11 +203,9 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
 
         it("allows finalization of contract and release of tokens once cap is reached", async function() {
             const weiRaised = new h.BigNumber((await this.crowdsale.weiRaised()).valueOf());
-            await this.crowdsale.buyTokens(user1, {from: user1, value: this.cap .sub(weiRaised)}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.cap.sub(weiRaised)}).should.be.fulfilled;
             await this.token.endSale({from: owner}).should.be.rejectedWith(h.EVMThrow);
             await this.crowdsale.finalize({from: owner}).should.be.fulfilled;
-            const transferableTokens = await this.token.transferableTokens(user1, 0);
-            transferableTokens.should.be.bignumber.greaterThan(0);
         });
 
         it('should forward funds to wallet', async function() {
@@ -218,11 +217,13 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         });
 
         it("allocates the correct number of tokens", async function() {
-            const buySize = h.e2Wei(25000);
-            const currTier = await this.crowdsale.currTier();
-            await this.crowdsale.buyTokens(user3, {from: user3, value: buySize});
-            const balance = await this.token.balanceOf(user3);
-            balance.should.be.bignumber.equal(h.calculateTokens(tiers, presaleWeiSold, buySize));
+            await this.crowdsale.buyTokens(user3, {from: user3, value: h.e2Wei(1)}).should.be.fulfilled;
+            const balance3 = new h.BigNumber(await this.token.balanceOf(user3));
+            balance3.should.be.bignumber.equal(h.e2Wei(1500));
+
+            await this.crowdsale.buyTokens(user1, {from: user1, value: h.e2Wei(3)}).should.be.fulfilled;
+            const balance1 = new h.BigNumber(await this.token.balanceOf(user1));
+            balance1.should.be.bignumber.equal(h.e2Wei(3 * 1500));
         });
     });
 
@@ -279,12 +280,12 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
             await this.crowdsale.buyTokens(user1, {from: user1, value: h.e2Wei(3)}).should.be.fulfilled;
         });
         it("multiple users buy before and after whitelist", async function() {
-            await this.crowdsale.buyTokens(user1, {from: user1, value: this.roundedThirdMaxWhitelistBuy}).should.be.fulfilled;
-            await this.crowdsale.buyTokens(user1, {from: user1, value: this.roundedThirdMaxWhitelistBuy}).should.be.rejectedWith(h.EVMThrow);
-            await this.crowdsale.buyTokens(user2, {from: user1, value: this.roundedThirdMaxWhitelistBuy}).should.be.rejectedWith(h.EVMThrow);
-            await this.crowdsale.buyTokens(user2, {from: user2, value: deciEth}).should.be.fulfilled;
-            await this.crowdsale.buyTokens(user2, {from: user2, value: deciEth}).should.be.rejectedWith(h.EVMThrow);
-            await this.crowdsale.buyTokens(user3, {from: user3, value: this.roundedThirdMaxWhitelistBuy}).should.be.rejectedWith(h.EVMThrow);
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.thirdMaxWhitelistBuy}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.thirdMaxWhitelistBuy}).should.be.rejectedWith(h.EVMThrow);
+            await this.crowdsale.buyTokens(user2, {from: user1, value: this.thirdMaxWhitelistBuy}).should.be.rejectedWith(h.EVMThrow);
+            await this.crowdsale.buyTokens(user2, {from: user2, value: 1}).should.be.fulfilled;
+            await this.crowdsale.buyTokens(user2, {from: user2, value: 1}).should.be.rejectedWith(h.EVMThrow);
+            await this.crowdsale.buyTokens(user3, {from: user3, value: this.thirdMaxWhitelistBuy}).should.be.rejectedWith(h.EVMThrow);
             await this.setTimeNormalPeriod();
             await this.crowdsale.buyTokens(user2, {from: user1, value: h.e2Wei(1)}).should.be.fulfilled;
             await this.crowdsale.buyTokens(user1, {from: user1, value: h.e2Wei(3)}).should.be.fulfilled;
@@ -299,12 +300,12 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
 });
 
 const tiers = [
-    { amountCap: h.e2Wei(18000), rate: 200 },
-    { amountCap: h.e2Wei(18000 + 5000),  rate: 150 },
-    { amountCap: h.e2Wei(18000 + 10000), rate: 135 },
-    { amountCap: h.e2Wei(18000 + 15000), rate: 125 },
-    { amountCap: h.e2Wei(18000 + 21000), rate: 115 },
-    { amountCap: h.e2Wei(18000 + 27000), rate: 105 },
+    { amountCap: h.e2Wei(18000), rate: 2000 },
+    { amountCap: h.e2Wei(18000 + 5000),  rate: 1500 },
+    { amountCap: h.e2Wei(18000 + 10000), rate: 1350 },
+    { amountCap: h.e2Wei(18000 + 15000), rate: 1250 },
+    { amountCap: h.e2Wei(18000 + 21000), rate: 1150 },
+    { amountCap: h.e2Wei(18000 + 27000), rate: 1050 },
 ];
 
 

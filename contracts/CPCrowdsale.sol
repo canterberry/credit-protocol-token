@@ -11,14 +11,12 @@ import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     using SafeMath for uint256;
 
-    uint256 public deciEth = 1 ether / 10;
+    uint256 public constant decimals = 18;
     uint256 public cpCap = 45000 ether;
     uint256 public constant dummyRate = 1;
 
     uint256 public presaleWeiSold = 18000 ether;
-    uint256 public totalTokens = 116158667;
-    uint256 public publicTokens = 33695200;
-    uint256 public initialOwnerTokens = totalTokens - publicTokens;
+    uint256 public initialOwnerTokens = 82458667 * (10 ** decimals);
 
     uint256[6] public tierAmountCaps =  [ presaleWeiSold
                                         , presaleWeiSold + 5000 ether
@@ -27,12 +25,12 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
                                         , presaleWeiSold + 21000 ether
                                         , cpCap
                                         ];
-    uint256[6] public tierRates = [ 200 // tierRates[0] should never be used, but it is accurate
-                                  , 150 // Tokens are purchased at a rate of 1050-1500
-                                  , 135 // per Eth, depending on purchase tier.
-                                  , 125 // tierRates[i] is the purchase rate of tier_i
-                                  , 115
-                                  , 105
+    uint256[6] public tierRates = [ 2000 // tierRates[0] should never be used, but it is accurate
+                                  , 1500 // Tokens are purchased at a rate of 105-150
+                                  , 1350 // per deciEth, depending on purchase tier.
+                                  , 1250 // tierRates[i] is the purchase rate of tier_i
+                                  , 1150
+                                  , 1050
                                   ];
 
     AbstractWhitelist private aw;
@@ -59,7 +57,6 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
 
     function buyTokens(address beneficiary) public payable whenNotPaused {
         uint256 weiAmount = msg.value;
-        require(msg.value % deciEth == 0);
 
         require(beneficiary != 0x0);
         require(validPurchase());
@@ -89,8 +86,10 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
      */
     function finalization() internal {
         uint256 remainingWei = cap.sub(weiRaised);
-        uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised);
-        token.mint(wallet, remainingDevTokens);
+        if (remainingWei > 0) {
+            uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised);
+            token.mint(wallet, remainingDevTokens);
+        }
         CPToken(token).endSale();
         token.finishMinting();
         super.finalization();
@@ -147,10 +146,10 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
         uint256 tokens = 0;
         for (uint256 i = currentTier; i < tierAmountCaps.length; i++) {
             if (endWeiLevel <= tierAmountCaps[i]) {
-                tokens = tokens.add((endWeiLevel.sub(startWeiLevel)).div(deciEth).mul(tierRates[i]));
+                tokens = tokens.add((endWeiLevel.sub(startWeiLevel)).mul(tierRates[i]));
                 break;
             } else {
-                tokens = tokens.add((tierAmountCaps[i].sub(startWeiLevel)).div(deciEth).mul(tierRates[i]));
+                tokens = tokens.add((tierAmountCaps[i].sub(startWeiLevel)).mul(tierRates[i]));
                 startWeiLevel = tierAmountCaps[i];
             }
         }
