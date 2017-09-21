@@ -11,27 +11,25 @@ import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     using SafeMath for uint256;
 
-    bool public offlineSaleDone; // when true, owner can no longer pre-mint
-    uint public maxPreTokensNoDec;
-    uint public numOfflineTokensNoDec;
-
+    uint256 public constant decimals = 18;
     uint256 public cpCap = 45000 ether;
     uint256 public constant dummyRate = 1;
 
-    uint256 public currTier;
-    uint256 public constant numTiers = 6;
-    uint256[6] public tierAmountCaps =  [ 5000 ether // tierAmountCaps[i] defines upper boundry of tier_i
-                                        , 10000 ether
-                                        , 20000 ether
-                                        , 30000 ether
-                                        , 40000 ether
+    uint256 public presaleWeiSold = 18000 ether;
+    uint256 public initialOwnerTokens = 82458667 * (10 ** decimals);
+
+    uint256[6] public tierAmountCaps =  [ presaleWeiSold
+                                        , presaleWeiSold + 5000 ether
+                                        , presaleWeiSold + 10000 ether
+                                        , presaleWeiSold + 15000 ether
+                                        , presaleWeiSold + 21000 ether
                                         , cpCap
                                         ];
-    uint256[6] public tierRates = [ 1500 // Tokens are purchased at a rate of 1050-1500
-                                  , 1350 // per Eth, depending on purchase tier.
+    uint256[6] public tierRates = [ 2000 // tierRates[0] should never be used, but it is accurate
+                                  , 1500 // Tokens are purchased at a rate of 105-150
+                                  , 1350 // per deciEth, depending on purchase tier.
                                   , 1250 // tierRates[i] is the purchase rate of tier_i
                                   , 1150
-                                  , 1100
                                   , 1050
                                   ];
 
@@ -41,38 +39,21 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     uint256 public maxWhitelistPurchaseWei;
     uint256 public openWhitelistEndTime;
 
-    function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, address _whitelistContract, uint256 _startingWeiSold, uint256 _numDevTokensNoDec, uint256 _maxOfflineTokensNoDec)
+    function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, address _whitelistContract)
         CappedCrowdsale(cpCap)
         FinalizableCrowdsale()
         Crowdsale(_startTime, _endTime, dummyRate, _wallet)  // rate is a dummy value; we use tiers instead
     {
-        maxPreTokensNoDec = _numDevTokensNoDec.add(_maxOfflineTokensNoDec);
-        numOfflineTokensNoDec = 0;
-        offlineSale(_wallet, _numDevTokensNoDec);
+        token.mint(_wallet, initialOwnerTokens);
         aw = AbstractWhitelist(_whitelistContract);
         require (aw.numUsers() > 0);
-        currTier = 0;
         whitelistEndTime = _whitelistEndTime;
         openWhitelistEndTime = _openWhitelistEndTime;
-        weiRaised = _startingWeiSold;
+        weiRaised = presaleWeiSold;
         maxWhitelistPurchaseWei = (cap.sub(weiRaised)).div(aw.numUsers());
     }
 
     // Public functions
-
-    function offlineSale(address beneficiary, uint256 _numTokensNoDec) public onlyOwner {
-        uint256 totalOffline = numOfflineTokensNoDec.add(_numTokensNoDec);
-        require (now < startTime); // only runs before start of sale
-        require (!offlineSaleDone);
-        require (totalOffline <= maxPreTokensNoDec);
-        numOfflineTokensNoDec = totalOffline;
-        token.mint(beneficiary, (_numTokensNoDec.mul(10 ** 18)));
-    }
-
-    function endOfflineSale() public onlyOwner {
-        require (!offlineSaleDone);
-        offlineSaleDone = true;
-    }
 
     function buyTokens(address beneficiary) public payable whenNotPaused {
         uint256 weiAmount = msg.value;
@@ -86,13 +67,10 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
 
         hasPurchased[beneficiary] = true;
 
-        uint256 tokens = calculateTokens(weiAmount, weiRaised, currTier, 0);
+        uint256 tokens = calculateTokens(weiAmount, weiRaised);
         weiRaised = weiRaised.add(weiAmount);
-        setTier(weiRaised);
-
         token.mint(beneficiary, tokens);
         TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
-
         forwardFunds();
     }
 
@@ -108,22 +86,16 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
      */
     function finalization() internal {
         uint256 remainingWei = cap.sub(weiRaised);
-        uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised, currTier, 0);
-        token.mint(wallet, remainingDevTokens);
+        if (remainingWei > 0) {
+            uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised);
+            token.mint(wallet, remainingDevTokens);
+        }
         CPToken(token).endSale();
         token.finishMinting();
         super.finalization();
     }
 
-
     // Private functions
-
-    function setTier(uint256 _weiRaised) private {
-        while(_weiRaised > tierAmountCaps[currTier]) {
-            currTier = currTier.add(1);
-            assert(currTier < numTiers);
-        }
-    }
 
     // can't override `validPurchase` because need to pass additional values
     function whitelistValidPurchase(address buyer, address beneficiary, uint256 amountWei) private constant returns (bool) {
@@ -153,21 +125,35 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
         return cappedWhitelistOver && openWhitelistPeriod;
     }
 
+    function tierIndexByWeiAmount(uint256 weiLevel) private constant returns (uint256) {
+        require(weiLevel <= cpCap);
+        for (uint256 i = 0; i < tierAmountCaps.length; i++) {
+            if (weiLevel < tierAmountCaps[i]) {
+                return i;
+            }
+        }
+    }
+
     /**
      * @dev Calculates how many tokens a given amount of wei can buy
      * Takes into account tiers of purchase bonus
      * Recursive, but depth is limited to the number of tiers, which is 6
      */
-    function calculateTokens(uint256 _amountWei, uint256 _weiRaised, uint256 _tier, uint256 tokenAcc) private constant returns (uint256) {
-        assert(_tier < numTiers);
-        uint256 currRate = tierRates[_tier];
-        uint256 tierAmountLeftWei = tierAmountCaps[_tier].sub(_weiRaised);
-        if (_amountWei <= tierAmountLeftWei) {
-            return tokenAcc.add(_amountWei.mul(currRate));
+    function calculateTokens(uint256 _amountWei, uint256 _weiRaised) private constant returns (uint256) {
+        uint256 currentTier = tierIndexByWeiAmount(_weiRaised);
+        uint256 startWeiLevel = _weiRaised;
+        uint256 endWeiLevel = _amountWei.add(_weiRaised);
+        uint256 tokens = 0;
+        for (uint256 i = currentTier; i < tierAmountCaps.length; i++) {
+            if (endWeiLevel <= tierAmountCaps[i]) {
+                tokens = tokens.add((endWeiLevel.sub(startWeiLevel)).mul(tierRates[i]));
+                break;
+            } else {
+                tokens = tokens.add((tierAmountCaps[i].sub(startWeiLevel)).mul(tierRates[i]));
+                startWeiLevel = tierAmountCaps[i];
+            }
         }
-        else {
-            return calculateTokens(_amountWei.sub(tierAmountLeftWei), _weiRaised.add(tierAmountLeftWei), _tier.add(1), tokenAcc.add(tierAmountLeftWei.mul(currRate)));
-        }
+        return tokens;
     }
 
 }
