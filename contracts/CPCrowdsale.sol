@@ -126,7 +126,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     }
 
     function tierIndexByWeiAmount(uint256 weiLevel) private constant returns (uint256) {
-        require(weiLevel < cpCap);
+        require(weiLevel <= cpCap);
         for (uint256 i = 0; i < tierAmountCaps.length; i++) {
             if (weiLevel < tierAmountCaps[i]) {
                 return i;

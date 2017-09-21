@@ -10,10 +10,10 @@ const CPToken = artifacts.require("./CPToken.sol");
 const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
 const presaleEthersold = 18000
-const presaleWeiSold = new h.BigNumber(h.toWei(presaleEthersold, "ether"));
+const presaleWeiSold = h.toWei(presaleEthersold, "ether");
 
 contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
-    const privateTokens = (new h.BigNumber(116158667 - 33700000)).mul((new h.BigNumber(10)).pow(18));
+    const privateTokens = h.toWei(116158667 - 33700000);
 
     before(async function() {
         // Advance to the next block to correctly read time in the solidity
@@ -48,6 +48,23 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         this.cap = new h.BigNumber((await this.crowdsale.cap()).valueOf());
 
     });
+
+    // describe("calculateTokens", function() {
+    //     it("tierIndexByWeiAmount", async function() {
+    //         await this.crowdsale.tierIndexByWeiAmount(presaleWeiSold, {from: user1}).should.be.fulfilled;
+    //         await this.crowdsale.tierIndexByWeiAmount(0, {from: user1}).should.be.fulfilled;
+    //         await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(1), {from: user1}).should.be.fulfilled;
+    //         await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(19000), {from: user1}).should.be.fulfilled;
+
+    //     });
+    //     it("handles different _amountWei inputs", async function() {
+    //         await this.crowdsale.calculateTokens(0, presaleWeiSold, {from: user1}).should.be.fulfilled;
+    //         await this.crowdsale.calculateTokens(1, presaleWeiSold, {from: user1}).should.be.fulfilled;
+    //         await this.crowdsale.calculateTokens(1000, presaleWeiSold, {from: user1}).should.be.fulfilled;
+    //     });
+
+    // });
+
 
     describe("Before start", function() {
         it("rejects payment before start", async function() {
@@ -224,6 +241,11 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
             await this.crowdsale.buyTokens(user1, {from: user1, value: h.e2Wei(3)}).should.be.fulfilled;
             const balance1 = new h.BigNumber(await this.token.balanceOf(user1));
             balance1.should.be.bignumber.equal(h.e2Wei(3 * 1500));
+
+            await this.crowdsale.buyTokens(user2, {from: user2, value: h.e2Wei(5000)}).should.be.fulfilled;
+            const balance2 = new h.BigNumber(await this.token.balanceOf(user2));
+            balance2.should.be.bignumber.equal(h.e2Wei((5000 - 4) * 1500 + 4 * 1350));
+
         });
     });
 
