@@ -9,12 +9,12 @@ const CPCrowdsale = artifacts.require('./helpers/CPCrowdsale.sol');
 const CPToken = artifacts.require("./CPToken.sol");
 const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
-contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
-    const numDevTokensNoDec     = new h.BigNumber(23231733); //23M+
-    const maxOfflineTokensNoDec = new h.BigNumber(36000000); //36M
+const presaleEthersold = 18000
+const presaleWeiSold = h.toWei(presaleEthersold, "ether");
 
-    // todo eliminate
-    const startingWeiSold = h.toWei(18000, "ether");
+contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
+    const privateTokens = new h.BigNumber(116158667 - 33695200);
+
     // todo eliminate
     const cap = h.toWei(45000, "ether");
 
@@ -44,7 +44,7 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         await this.whitelist.signUp({from: user1});
         await this.whitelist.signUp({from: user2});
 
-        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, this.openWhitelistEndTime, wallet, this.whitelist.address, numDevTokensNoDec, maxOfflineTokensNoDec, {from: owner});
+        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, this.openWhitelistEndTime, wallet, this.whitelist.address, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
     });
@@ -54,46 +54,9 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
             await this.crowdsale.buyTokens(user1, {from: user1, value: 1}).should.be.rejectedWith(h.EVMThrow);
         });
 
-        it("offline sales can go right up to allocation", async function() {
-            await this.crowdsale.offlineSale(wallet, maxOfflineTokensNoDec.div(2), {from: owner}).should.be.fulfilled;
-            await this.crowdsale.offlineSale(wallet, maxOfflineTokensNoDec.div(2), {from: owner}).should.be.fulfilled;
-        });
-
-        it("offline sales can't exceed allocation", async function() {
-            await this.crowdsale.offlineSale(wallet, maxOfflineTokensNoDec.div(2), {from: owner}).should.be.fulfilled;
-            await this.crowdsale.offlineSale(wallet, maxOfflineTokensNoDec.div(2), {from: owner}).should.be.fulfilled;
-            await this.crowdsale.offlineSale(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
-        });
-
-        it("offline sale recording can be ended early; no offline sales after ending", async function() {
-            await this.crowdsale.offlineSale(wallet, numDevTokensNoDec, {from: owner}).should.be.fulfilled;
-            await this.crowdsale.endOfflineSale({from: owner}).should.be.fulfilled;
-            await this.crowdsale.offlineSale(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
-        });
-
-        it("non-owner can't record offline sale", async function() {
-            await this.crowdsale.offlineSale(wallet, 1, {from: wallet}).should.be.rejectedWith(h.EVMThrow);
-        });
-
-        it("owner can do offline sale", async function() {
-            const amt1 = maxOfflineTokensNoDec;
-            await this.crowdsale.offlineSale(wallet, amt1, {from: owner}).should.be.fulfilled;
-        });
-
-        it("offline sale increases totalSupply correctly", async function() {
-            const amt1 = new h.BigNumber(1);
-            const amt2 = new h.BigNumber(50000);
-            const amt3 = new h.BigNumber(910090);
-            await this.crowdsale.offlineSale(user1, amt1, {from: owner}).should.be.fulfilled;
-            await this.crowdsale.offlineSale(user1, amt2, {from: owner}).should.be.fulfilled;
-            await this.crowdsale.offlineSale(user2, amt3, {from: owner}).should.be.fulfilled;
-            const supply = await this.token.totalSupply();
-            supply.should.be.bignumber.equal(h.tokenToDec(amt1.plus(amt2).plus(amt3)).plus(h.tokenToDec(numDevTokensNoDec)));
-        });
-
         it("mints the correct number of developer tokens", async function() {
             const balance = await this.token.balanceOf(wallet);
-            balance.should.be.bignumber.equal(h.tokenToDec(numDevTokensNoDec));
+            balance.should.be.bignumber.equal(privateTokens);
         });
 
         it("sets the tiers correctly", async function() {
@@ -111,13 +74,9 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
             await h.increaseTimeTo(this.startTime);
         });
 
-        it("owner can't record offline sale after start", async function() {
-            await this.crowdsale.offlineSale(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
-        });
-
         it("calculates whitelist max purchase correctly", async function() {
             whitelistSize = new h.BigNumber((await this.whitelist.numUsers()).valueOf());
-            this.maxWhitelistBuy.should.be.bignumber.equal((cap - startingWeiSold)/whitelistSize);
+            this.maxWhitelistBuy.should.be.bignumber.equal((cap - presaleWeiSold)/whitelistSize);
         });
 
         it("does not allow non-beneficiary to do a whitelist buy", async function() {
@@ -156,17 +115,13 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         it("allocates the correct number of tokens", async function() {
             await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy});
             const balance = await this.token.balanceOf(user1);
-            balance.should.be.bignumber.equal(h.calculateTokens(tiers, startingWeiSold, this.maxWhitelistBuy));
+            balance.should.be.bignumber.equal(h.calculateTokens(tiers, presaleWeiSold, this.maxWhitelistBuy));
         });
     });
 
     describe("Open Whitelist period", function() {
         beforeEach(async function() {
             await this.setTimeOpenWhitelistPeriod();
-        });
-
-        it("owner can't record offline sale after start", async function() {
-            await this.crowdsale.offlineSale(wallet, 1, {from: owner}).should.be.rejectedWith(h.EVMThrow);
         });
 
         it("does not allow non-beneficiary to do a open whitelist buy", async function() {
@@ -196,7 +151,7 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         it("allocates the correct number of tokens", async function() {
             await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy});
             const balance = await this.token.balanceOf(user1);
-            balance.should.be.bignumber.equal(h.calculateTokens(tiers, startingWeiSold, this.maxWhitelistBuy));
+            balance.should.be.bignumber.equal(h.calculateTokens(tiers, presaleWeiSold, this.maxWhitelistBuy));
         });
     });
 
@@ -250,7 +205,7 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
             const currTier = await this.crowdsale.currTier();
             await this.crowdsale.buyTokens(user3, {from: user3, value: buySize});
             const balance = await this.token.balanceOf(user3);
-            balance.should.be.bignumber.equal(h.calculateTokens(tiers, startingWeiSold, buySize));
+            balance.should.be.bignumber.equal(h.calculateTokens(tiers, presaleWeiSold, buySize));
         });
     });
 
@@ -327,12 +282,12 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
 });
 
 const tiers = [
-    { amountCap: h.e2Wei(5000),  rate: 1500 },
-    { amountCap: h.e2Wei(10000), rate: 1350 },
-    { amountCap: h.e2Wei(20000), rate: 1250 },
-    { amountCap: h.e2Wei(30000), rate: 1150 },
-    { amountCap: h.e2Wei(40000), rate: 1100 },
-    { amountCap: h.e2Wei(45000), rate: 1050 },
+    { amountCap: h.e2Wei(18000), rate: 2000 },
+    { amountCap: h.e2Wei(18000 + 5000),  rate: 1500 },
+    { amountCap: h.e2Wei(18000 + 10000), rate: 1350 },
+    { amountCap: h.e2Wei(18000 + 15000), rate: 1250 },
+    { amountCap: h.e2Wei(18000 + 21000), rate: 1150 },
+    { amountCap: h.e2Wei(18000 + 27000), rate: 1050 },
 ];
 
 const tierAmountCaps = function() {

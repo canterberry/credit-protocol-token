@@ -11,9 +11,6 @@ import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     using SafeMath for uint256;
 
-    bool public offlineSaleDone; // when true, owner can no longer pre-mint
-    uint public numOfflineTokensNoDec;
-
     uint256 public cpCap = 45000 ether;
     uint256 public constant dummyRate = 1;
 
@@ -50,7 +47,6 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
         FinalizableCrowdsale()
         Crowdsale(_startTime, _endTime, dummyRate, _wallet)  // rate is a dummy value; we use tiers instead
     {
-        numOfflineTokensNoDec = 0;
         token.mint(_wallet, initialOwnerTokens);
         aw = AbstractWhitelist(_whitelistContract);
         require (aw.numUsers() > 0);
@@ -79,10 +75,8 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
         uint256 tokens = calculateTokens(weiAmount, weiRaised, currTier, 0);
         weiRaised = weiRaised.add(weiAmount);
         setTier(weiRaised);
-
         token.mint(beneficiary, tokens);
         TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
-
         forwardFunds();
     }
 
