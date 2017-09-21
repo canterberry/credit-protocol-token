@@ -143,14 +143,14 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     function calculateTokens(uint256 _amountWei, uint256 _weiRaised) private constant returns (uint256) {
         uint256 currentTier = tierIndexByWeiAmount(_weiRaised);
         uint256 startWeiLevel = _weiRaised;
-        uint256 endWeiLevel = _amountWei + _weiRaised;
+        uint256 endWeiLevel = _amountWei.add(_weiRaised);
         uint256 tokens = 0;
         for (uint256 i = currentTier; i < tierAmountCaps.length; i++) {
             if (endWeiLevel <= tierAmountCaps[i]) {
-                tokens = tokens.add((endWeiLevel - startWeiLevel) / deciEth) * tierRates[i];
+                tokens = tokens.add((endWeiLevel.sub(startWeiLevel)).div(deciEth).mul(tierRates[i]));
                 break;
             } else {
-                tokens = tokens.add((tierAmountCaps[i] - startWeiLevel) / deciEth) * tierRates[i];
+                tokens = tokens.add((tierAmountCaps[i].sub(startWeiLevel)).div(deciEth).mul(tierRates[i]));
                 startWeiLevel = tierAmountCaps[i];
             }
         }
