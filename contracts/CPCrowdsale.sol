@@ -11,6 +11,7 @@ import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     using SafeMath for uint256;
 
+    uint256 public deciEth = 1 ether / 10;
     uint256 public cpCap = 45000 ether;
     uint256 public constant dummyRate = 1;
 
@@ -19,8 +20,6 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     uint256 public publicTokens = 33695200;
     uint256 public initialOwnerTokens = totalTokens - publicTokens;
 
-    uint256 public currTier;
-    uint256 public constant numTiers = 6;
     uint256[6] public tierAmountCaps =  [ presaleWeiSold
                                         , presaleWeiSold + 5000 ether
                                         , presaleWeiSold + 10000 ether
@@ -28,12 +27,12 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
                                         , presaleWeiSold + 21000 ether
                                         , cpCap
                                         ];
-    uint256[6] public tierRates = [ 2000 // tierRates[0] should never be used, but it is accurate
-                                  , 1500 // Tokens are purchased at a rate of 1050-1500
-                                  , 1350 // per Eth, depending on purchase tier.
-                                  , 1250 // tierRates[i] is the purchase rate of tier_i
-                                  , 1150
-                                  , 1050
+    uint256[6] public tierRates = [ 200 // tierRates[0] should never be used, but it is accurate
+                                  , 150 // Tokens are purchased at a rate of 1050-1500
+                                  , 135 // per Eth, depending on purchase tier.
+                                  , 125 // tierRates[i] is the purchase rate of tier_i
+                                  , 115
+                                  , 105
                                   ];
 
     AbstractWhitelist private aw;
@@ -50,11 +49,9 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
         token.mint(_wallet, initialOwnerTokens);
         aw = AbstractWhitelist(_whitelistContract);
         require (aw.numUsers() > 0);
-        currTier = 0;
         whitelistEndTime = _whitelistEndTime;
         openWhitelistEndTime = _openWhitelistEndTime;
         weiRaised = presaleWeiSold;
-        setTier(weiRaised);
         maxWhitelistPurchaseWei = (cap.sub(weiRaised)).div(aw.numUsers());
     }
 
@@ -62,6 +59,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
 
     function buyTokens(address beneficiary) public payable whenNotPaused {
         uint256 weiAmount = msg.value;
+        require(msg.value % deciEth == 0);
 
         require(beneficiary != 0x0);
         require(validPurchase());
@@ -72,9 +70,8 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
 
         hasPurchased[beneficiary] = true;
 
-        uint256 tokens = calculateTokens(weiAmount, weiRaised, currTier, 0);
+        uint256 tokens = calculateTokens(weiAmount, weiRaised);
         weiRaised = weiRaised.add(weiAmount);
-        setTier(weiRaised);
         token.mint(beneficiary, tokens);
         TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
         forwardFunds();
@@ -92,22 +89,14 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
      */
     function finalization() internal {
         uint256 remainingWei = cap.sub(weiRaised);
-        uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised, currTier, 0);
+        uint256 remainingDevTokens = calculateTokens(remainingWei, weiRaised);
         token.mint(wallet, remainingDevTokens);
         CPToken(token).endSale();
         token.finishMinting();
         super.finalization();
     }
 
-
     // Private functions
-
-    function setTier(uint256 _weiRaised) private {
-        while(_weiRaised > tierAmountCaps[currTier]) {
-            currTier = currTier.add(1);
-            assert(currTier < numTiers);
-        }
-    }
 
     // can't override `validPurchase` because need to pass additional values
     function whitelistValidPurchase(address buyer, address beneficiary, uint256 amountWei) private constant returns (bool) {
@@ -137,21 +126,35 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
         return cappedWhitelistOver && openWhitelistPeriod;
     }
 
+    function tierIndexByWeiAmount(uint256 weiLevel) private constant returns (uint256) {
+        require(weiLevel < cpCap);
+        for (uint256 i = 0; i < tierAmountCaps.length; i++) {
+            if (weiLevel < tierAmountCaps[i]) {
+                return i;
+            }
+        }
+    }
+
     /**
      * @dev Calculates how many tokens a given amount of wei can buy
      * Takes into account tiers of purchase bonus
      * Recursive, but depth is limited to the number of tiers, which is 6
      */
-    function calculateTokens(uint256 _amountWei, uint256 _weiRaised, uint256 _tier, uint256 tokenAcc) private constant returns (uint256) {
-        assert(_tier < numTiers);
-        uint256 currRate = tierRates[_tier];
-        uint256 tierAmountLeftWei = tierAmountCaps[_tier].sub(_weiRaised);
-        if (_amountWei <= tierAmountLeftWei) {
-            return tokenAcc.add(_amountWei.mul(currRate));
+    function calculateTokens(uint256 _amountWei, uint256 _weiRaised) private constant returns (uint256) {
+        uint256 currentTier = tierIndexByWeiAmount(_weiRaised);
+        uint256 startWeiLevel = _weiRaised;
+        uint256 endWeiLevel = _amountWei + _weiRaised;
+        uint256 tokens = 0;
+        for (uint256 i = currentTier; i < tierAmountCaps.length; i++) {
+            if (endWeiLevel <= tierAmountCaps[i]) {
+                tokens = tokens.add((endWeiLevel - startWeiLevel) / deciEth) * tierRates[i];
+                break;
+            } else {
+                tokens = tokens.add((tierAmountCaps[i] - startWeiLevel) / deciEth) * tierRates[i];
+                startWeiLevel = tierAmountCaps[i];
+            }
         }
-        else {
-            return calculateTokens(_amountWei.sub(tierAmountLeftWei), _weiRaised.add(tierAmountLeftWei), _tier.add(1), tokenAcc.add(tierAmountLeftWei.mul(currRate)));
-        }
+        return tokens;
     }
 
 }
