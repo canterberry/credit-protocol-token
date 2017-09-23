@@ -9,11 +9,17 @@ const CPCrowdsale = artifacts.require('./helpers/CPCrowdsale.sol');
 const CPToken = artifacts.require("./CPToken.sol");
 const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
-const presaleEthersold = 18000
+const presaleEthersold = 18000;
 const presaleWeiSold = h.toWei(presaleEthersold, "ether");
 
-contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
-    const privateTokens = h.toWei(116158667 - 33700000);
+contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWallet, advisorWallet, stakingWallet, privateSaleWallet]) {
+    const nonPublicTokens = new h.BigNumber(h.toWei(116158667 - 33700000));
+
+    const initialAirdropTokens = new h.BigNumber(h.toWei(5807933));
+    const initialAdvisorTokens = new h.BigNumber(h.toWei(5807933));
+    const initialStakingTokens = new h.BigNumber(h.toWei(11615867));
+    const initialPrivateSaleTokens = new h.BigNumber(h.toWei(36000000));
+    const initialDevTokens = nonPublicTokens.minus(initialAirdropTokens).minus(initialAdvisorTokens).minus(initialStakingTokens).minus(initialPrivateSaleTokens);
 
     before(async function() {
         // Advance to the next block to correctly read time in the solidity
@@ -41,7 +47,7 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
         await this.whitelist.signUp({from: user1});
         await this.whitelist.signUp({from: user2});
 
-        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, this.openWhitelistEndTime, wallet, this.whitelist.address, {from: owner});
+        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, this.openWhitelistEndTime, wallet, this.whitelist.address, airdropWallet, advisorWallet, stakingWallet, privateSaleWallet, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
         this.thirdMaxWhitelistBuy = this.maxWhitelistBuy.div(3);
@@ -71,9 +77,29 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3]) {
             await this.crowdsale.buyTokens(user1, {from: user1, value: 1}).should.be.rejectedWith(h.EVMThrow);
         });
 
+        it("mints the correct number of airdrop tokens", async function() {
+            const balance = await this.token.balanceOf(airdropWallet);
+            balance.should.be.bignumber.equal(initialAirdropTokens);
+        });
+
+        it("mints the correct number of advisor tokens", async function() {
+            const balance = await this.token.balanceOf(advisorWallet);
+            balance.should.be.bignumber.equal(initialAdvisorTokens);
+        });
+
+        it("mints the correct number of staking tokens", async function() {
+            const balance = await this.token.balanceOf(stakingWallet);
+            balance.should.be.bignumber.equal(initialStakingTokens);
+        });
+
+        it("mints the correct number of private sale tokens", async function() {
+            const balance = await this.token.balanceOf(privateSaleWallet);
+            balance.should.be.bignumber.equal(initialPrivateSaleTokens);
+        });
+
         it("mints the correct number of developer tokens", async function() {
             const balance = await this.token.balanceOf(wallet);
-            balance.should.be.bignumber.equal(privateTokens);
+            balance.should.be.bignumber.equal(initialDevTokens);
         });
 
         it("sets the tiers correctly", async function() {
