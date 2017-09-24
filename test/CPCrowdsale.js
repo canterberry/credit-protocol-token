@@ -55,21 +55,21 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
 
     });
 
-    // describe("calculateTokens", function() {
-    //     it("tierIndexByWeiAmount", async function() {
-    //         await this.crowdsale.tierIndexByWeiAmount(presaleWeiSold, {from: user1}).should.be.fulfilled;
-    //         await this.crowdsale.tierIndexByWeiAmount(0, {from: user1}).should.be.fulfilled;
-    //         await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(1), {from: user1}).should.be.fulfilled;
-    //         await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(19000), {from: user1}).should.be.fulfilled;
+    describe("calculateTokens", function() {
+        it("tierIndexByWeiAmount", async function() {
+            await this.crowdsale.tierIndexByWeiAmount(presaleWeiSold, {from: user1}).should.be.fulfilled;
+            await this.crowdsale.tierIndexByWeiAmount(0, {from: user1}).should.be.fulfilled;
+            await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(1), {from: user1}).should.be.fulfilled;
+            await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(19000), {from: user1}).should.be.fulfilled;
 
-    //     });
-    //     it("handles different _amountWei inputs", async function() {
-    //         await this.crowdsale.calculateTokens(0, presaleWeiSold, {from: user1}).should.be.fulfilled;
-    //         await this.crowdsale.calculateTokens(1, presaleWeiSold, {from: user1}).should.be.fulfilled;
-    //         await this.crowdsale.calculateTokens(1000, presaleWeiSold, {from: user1}).should.be.fulfilled;
-    //     });
+        });
+        it("handles different _amountWei inputs", async function() {
+            await this.crowdsale.calculateTokens(0, presaleWeiSold, {from: user1}).should.be.fulfilled;
+            await this.crowdsale.calculateTokens(1, presaleWeiSold, {from: user1}).should.be.fulfilled;
+            await this.crowdsale.calculateTokens(1000, presaleWeiSold, {from: user1}).should.be.fulfilled;
+        });
 
-    // });
+    });
 
 
     describe("Before start", function() {
