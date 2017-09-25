@@ -9,8 +9,16 @@ const CPCrowdsale = artifacts.require('./helpers/CPCrowdsale.sol');
 const CPToken = artifacts.require("./CPToken.sol");
 const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
-const presaleEthersold = 18000;
-const presaleWeiSold = h.e2Wei(presaleEthersold, "ether");
+const presaleWeiSold = h.e2Wei(18000, "ether");
+
+const tiers = [
+    { amountCap: presaleWeiSold, rate: web3.toBigNumber(2000) },
+    { amountCap: presaleWeiSold.add(h.e2Wei(5000)),  rate: web3.toBigNumber(1500) },
+    { amountCap: presaleWeiSold.add(h.e2Wei(10000)), rate: web3.toBigNumber(1350) },
+    { amountCap: presaleWeiSold.add(h.e2Wei(15000)), rate: web3.toBigNumber(1250) },
+    { amountCap: presaleWeiSold.add(h.e2Wei(21000)), rate: web3.toBigNumber(1150) },
+    { amountCap: presaleWeiSold.add(h.e2Wei(27000)), rate: web3.toBigNumber(1050) },
+];
 
 contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWallet, advisorWallet, stakingWallet, privateSaleWallet]) {
     const nonPublicTokens = new h.BigNumber(h.toWei(116158667 - 33700000));
@@ -72,39 +80,23 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
 
             const one = web3.toBigNumber(1);
             const kiloEth = web3.toBigNumber(web3.toWei(1000, "ether"));
-            const fiveKiloEth = web3.toBigNumber(web3.toWei(5000, "ether"));
-            const sixKiloEth = web3.toBigNumber(web3.toWei(5000, "ether"));
-            const tier1Rate = web3.toBigNumber(1500);
-            const tier2Rate = web3.toBigNumber(1350);
 
-            //presaleWeiSold
+            for (var i = 1; i < tiers.length; i++) {
+                // previous cap raised, 0 wei purchase
+                var p1 = await this.crowdsale.calculateTokens(0, tiers[i - 1].amountCap, {from: user1}).should.be.fulfilled;
+                p1.should.be.bignumber.equal(web3.toBigNumber(0));
 
-            const p11 = await this.crowdsale.calculateTokens(0, presaleWeiSold, {from: user1}).should.be.fulfilled;
-            p11.should.be.bignumber.equal(web3.toBigNumber(0));
+                // previous cap raised, one wei purchase
+                var p2 = await this.crowdsale.calculateTokens(1, tiers[i - 1].amountCap, {from: user1}).should.be.fulfilled;
+                p2.should.be.bignumber.equal(tiers[i].rate);
 
-            const p12 = await this.crowdsale.calculateTokens(1, presaleWeiSold, {from: user1}).should.be.fulfilled;
-            p12.should.be.bignumber.equal(tier1Rate);
-
-            const p13 = await this.crowdsale.calculateTokens(kiloEth, presaleWeiSold.add(kiloEth), {from: user1}).should.be.fulfilled;
-            p13.should.be.bignumber.equal(web3.toBigNumber(tier1Rate.mul(kiloEth)));
-
-            const p14 = await this.crowdsale.calculateTokens(fiveKiloEth, presaleWeiSold, {from: user1}).should.be.fulfilled;
-            p14.should.be.bignumber.equal(tier1Rate.mul(h.e2Wei(5000)));
-
-            const p15 = await this.crowdsale.calculateTokens(fiveKiloEth.add(one), presaleWeiSold, {from: user1}).should.be.fulfilled;
-            p15.should.be.bignumber.equal(tier1Rate.mul(h.e2Wei(5000)).add(tier2Rate));
-
-            //presaleWeiSold + 5000
-
-            //presaleWeiSold + 10000
-
-            //presaleWeiSold + 15000
-
-            //presaleWeiSold + 21000
+                // previous cap + 1000 eth raised, 1000 wei purchase
+                var p13 = await this.crowdsale.calculateTokens(kiloEth, tiers[i - 1].amountCap.add(kiloEth), {from: user1}).should.be.fulfilled;
+                p13.should.be.bignumber.equal(web3.toBigNumber((tiers[i].rate).mul(kiloEth)));
+            }
         });
 
     });
-
 
     describe("Before start", function() {
         it("rejects payment before start", async function() {
@@ -379,12 +371,3 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
 
     });
 });
-
-const tiers = [
-    { amountCap: h.e2Wei(18000), rate: 2000 },
-    { amountCap: h.e2Wei(18000 + 5000),  rate: 1500 },
-    { amountCap: h.e2Wei(18000 + 10000), rate: 1350 },
-    { amountCap: h.e2Wei(18000 + 15000), rate: 1250 },
-    { amountCap: h.e2Wei(18000 + 21000), rate: 1150 },
-    { amountCap: h.e2Wei(18000 + 27000), rate: 1050 },
-];
