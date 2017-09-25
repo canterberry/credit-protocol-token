@@ -78,8 +78,8 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
             await this.crowdsale.calculateTokens(1, presaleWeiSold, {from: user1}).should.be.fulfilled;
             await this.crowdsale.calculateTokens(1000, presaleWeiSold, {from: user1}).should.be.fulfilled;
 
-            const one = web3.toBigNumber(1);
-            const kiloEth = web3.toBigNumber(web3.toWei(1000, "ether"));
+            const bigOne = web3.toBigNumber(1);
+            const kiloEth = h.e2Wei(1000);
 
             for (var i = 1; i < tiers.length; i++) {
                 // previous cap raised, 0 wei purchase
@@ -92,7 +92,15 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
 
                 // previous cap + 1000 eth raised, 1000 wei purchase
                 var p13 = await this.crowdsale.calculateTokens(kiloEth, tiers[i - 1].amountCap.add(kiloEth), {from: user1}).should.be.fulfilled;
-                p13.should.be.bignumber.equal(web3.toBigNumber((tiers[i].rate).mul(kiloEth)));
+                p13.should.be.bignumber.equal((tiers[i].rate).mul(kiloEth));
+
+                // previous cap - 1 wei raised, 2 wei purchase
+                var p14 = await this.crowdsale.calculateTokens(2, tiers[i - 1].amountCap.sub(bigOne), {from: user1}).should.be.fulfilled;
+                p14.should.be.bignumber.equal((tiers[i - 1].rate).add(tiers[i].rate));
+
+                // previous cap - 1 wei raised, 3KEth + 1 wei purchase
+                var p15 = await this.crowdsale.calculateTokens(h.e2Wei(3).add(bigOne), tiers[i - 1].amountCap.sub(bigOne), {from: user1}).should.be.fulfilled;
+                p15.should.be.bignumber.equal((tiers[i - 1].rate).add(tiers[i].rate.mul(h.e2Wei(3))));
             }
         });
 
