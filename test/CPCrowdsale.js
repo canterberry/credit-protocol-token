@@ -63,23 +63,51 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
 
     });
 
-    describe("calculateTokens", function() {
+    describe("calculateTokens and tierIndexByWeiAmount", function() {
 
-        it("tierIndexByWeiAmount", async function() {
-            await this.crowdsale.tierIndexByWeiAmount(presaleWeiSold, {from: user1}).should.be.fulfilled;
-            await this.crowdsale.tierIndexByWeiAmount(0, {from: user1}).should.be.fulfilled;
-            await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(1), {from: user1}).should.be.fulfilled;
-            await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(19000), {from: user1}).should.be.fulfilled;
-            await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(46000), {from: user1}).should.be.rejectedWith(h.EVMThrow);
+        it("tierIndexByWeiAmount produces the correct tier values", async function() {
+            const r1 = await this.crowdsale.tierIndexByWeiAmount(presaleWeiSold, {from: user1}).should.be.fulfilled;
+            r1.should.be.bignumber.equal(web3.toBigNumber(0));
+            const r2 = await this.crowdsale.tierIndexByWeiAmount(0, {from: user1}).should.be.fulfilled;
+            r2.should.be.bignumber.equal(web3.toBigNumber(0));
+            const r3 = await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(1), {from: user1}).should.be.fulfilled;
+            r3.should.be.bignumber.equal(web3.toBigNumber(0));
+            const r4 = await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(1000).add(presaleWeiSold), {from: user1}).should.be.fulfilled;
+            r4.should.be.bignumber.equal(web3.toBigNumber(1));
+            const r5 = await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(1).add(tiers[1].amountCap), {from: user1}).should.be.fulfilled;
+            r5.should.be.bignumber.equal(web3.toBigNumber(2));
+            const r6 = await this.crowdsale.tierIndexByWeiAmount(tiers[5].amountCap, {from: user1}).should.be.fulfilled;
+            r6.should.be.bignumber.equal(web3.toBigNumber(5));
+            await this.crowdsale.tierIndexByWeiAmount(tiers[5].amountCap.add(h.e2Wei(1)), {from: user1}).should.be.rejectedWith(h.EVMThrow);
         });
 
-        it("handles different _amountWei inputs", async function() {
-            await this.crowdsale.calculateTokens(0, presaleWeiSold, {from: user1}).should.be.fulfilled;
-            await this.crowdsale.calculateTokens(1, presaleWeiSold, {from: user1}).should.be.fulfilled;
-            await this.crowdsale.calculateTokens(1000, presaleWeiSold, {from: user1}).should.be.fulfilled;
-
+        it("calculateTokens produces the proper token amounts", async function() {
             const bigOne = web3.toBigNumber(1);
             const kiloEth = h.e2Wei(1000);
+
+            // presaleWeiSold + 2000 eth raised, 19000 eth purchase
+            // = 1500 * 3000 + 1350 * 5000 + 1250 * 5000 + 1150 * 6000
+            // = 24400000 nominal CP tokens
+            const r1 = await this.crowdsale.calculateTokens(h.e2Wei(19000), tiers[0].amountCap.add(h.e2Wei(2000)), {from: user1}).should.be.fulfilled;
+            r1.should.be.bignumber.equal(h.e2Wei(24400000));
+
+            // presaleWeiSold + 2000 eth raised, 14000 eth purchase
+            // = 1500 * 3000 + 1350 * 5000 + 1250 * 5000 + 1150 * 1000
+            // = 18650000 nominal CP tokens
+            const r2 = await this.crowdsale.calculateTokens(h.e2Wei(14000), tiers[0].amountCap.add(h.e2Wei(2000)), {from: user1}).should.be.fulfilled;
+            r2.should.be.bignumber.equal(h.e2Wei(18650000));
+
+            // presaleWeiSold + 6000 eth raised, 20000 eth purchase
+            // = 1350 * 4000 + 1250 * 5000 + 1150 * 6000 + 1050 * 5000
+            // = 23800000 nominal CP tokens
+            const r3 = await this.crowdsale.calculateTokens(h.e2Wei(20000), tiers[0].amountCap.add(h.e2Wei(6000)), {from: user1}).should.be.fulfilled;
+            r3.should.be.bignumber.equal(h.e2Wei(23800000));
+
+            // presaleWeiSold + 6.78 eth raised, 6003.894 eth purchase
+            // = (5000 - 6.78) * 1500 + (6000.894 - (5000 - 6.78)) * 1350
+            // = 8850189.9 nominal CP tokens
+            const r4 = await this.crowdsale.calculateTokens(h.e2Wei(6000.894), tiers[0].amountCap.add(h.e2Wei(6.78)), {from: user1}).should.be.fulfilled;
+            r4.should.be.bignumber.equal(h.e2Wei(8850189.9));
 
             for (var i = 1; i < tiers.length; i++) {
                 // previous cap raised, 0 wei purchase
