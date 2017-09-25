@@ -52,5 +52,26 @@ module.exports = function(deployer, network) {
         }).then(() => {
             return CPCrowdsale.deployed();
         });
+    } else if (network === "geth") {
+        var whitelist;
+        deployer.deploy(DPIcoWhitelist, {from: web3.eth.accounts[0]}).then(function() {
+                return DPIcoWhitelist.deployed();
+        })
+        //     .then(whitelistContract => {
+        //     whitelist = whitelistContract;
+        //     return whitelist.setSignUpOnOff(true);
+        // }).then(() => {
+        //     whitelist.signUp({from: web3.eth.accounts[1]});
+        // }).then(() => {
+        //     const result = web3.eth.getBlock("latest");
+        //     const now = result.timestamp;
+        //     const startTime = new web3.BigNumber(now + deployDelay);
+        //     const endTime = new web3.BigNumber(now + thirtyDays);
+        //     const whitelistEndTime = new web3.BigNumber(now + fiveDays);
+        //     const openWhitelistEndTime = new web3.BigNumber(now + fiveDays + twoDays);
+        //     return deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, openWhitelistEndTime, wallet, whitelist.address, wallet, wallet, wallet, wallet);
+        // }).then(() => {
+        //     return CPCrowdsale.deployed();
+        // });
     }
 };

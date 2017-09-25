@@ -10,7 +10,7 @@ const CPToken = artifacts.require("./CPToken.sol");
 const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
 const presaleEthersold = 18000;
-const presaleWeiSold = h.toWei(presaleEthersold, "ether");
+const presaleWeiSold = h.e2Wei(presaleEthersold, "ether");
 
 contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWallet, advisorWallet, stakingWallet, privateSaleWallet]) {
     const nonPublicTokens = new h.BigNumber(h.toWei(116158667 - 33700000));
@@ -56,17 +56,51 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
     });
 
     describe("calculateTokens", function() {
+
         it("tierIndexByWeiAmount", async function() {
             await this.crowdsale.tierIndexByWeiAmount(presaleWeiSold, {from: user1}).should.be.fulfilled;
             await this.crowdsale.tierIndexByWeiAmount(0, {from: user1}).should.be.fulfilled;
             await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(1), {from: user1}).should.be.fulfilled;
             await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(19000), {from: user1}).should.be.fulfilled;
-
+            await this.crowdsale.tierIndexByWeiAmount(h.e2Wei(46000), {from: user1}).should.be.rejectedWith(h.EVMThrow);
         });
+
         it("handles different _amountWei inputs", async function() {
             await this.crowdsale.calculateTokens(0, presaleWeiSold, {from: user1}).should.be.fulfilled;
             await this.crowdsale.calculateTokens(1, presaleWeiSold, {from: user1}).should.be.fulfilled;
             await this.crowdsale.calculateTokens(1000, presaleWeiSold, {from: user1}).should.be.fulfilled;
+
+            const one = web3.toBigNumber(1);
+            const kiloEth = web3.toBigNumber(web3.toWei(1000, "ether"));
+            const fiveKiloEth = web3.toBigNumber(web3.toWei(5000, "ether"));
+            const sixKiloEth = web3.toBigNumber(web3.toWei(5000, "ether"));
+            const tier1Rate = web3.toBigNumber(1500);
+            const tier2Rate = web3.toBigNumber(1350);
+
+            //presaleWeiSold
+
+            const p11 = await this.crowdsale.calculateTokens(0, presaleWeiSold, {from: user1}).should.be.fulfilled;
+            p11.should.be.bignumber.equal(web3.toBigNumber(0));
+
+            const p12 = await this.crowdsale.calculateTokens(1, presaleWeiSold, {from: user1}).should.be.fulfilled;
+            p12.should.be.bignumber.equal(tier1Rate);
+
+            const p13 = await this.crowdsale.calculateTokens(kiloEth, presaleWeiSold.add(kiloEth), {from: user1}).should.be.fulfilled;
+            p13.should.be.bignumber.equal(web3.toBigNumber(tier1Rate.mul(kiloEth)));
+
+            const p14 = await this.crowdsale.calculateTokens(fiveKiloEth, presaleWeiSold, {from: user1}).should.be.fulfilled;
+            p14.should.be.bignumber.equal(tier1Rate.mul(h.e2Wei(5000)));
+
+            const p15 = await this.crowdsale.calculateTokens(fiveKiloEth.add(one), presaleWeiSold, {from: user1}).should.be.fulfilled;
+            p15.should.be.bignumber.equal(tier1Rate.mul(h.e2Wei(5000)).add(tier2Rate));
+
+            //presaleWeiSold + 5000
+
+            //presaleWeiSold + 10000
+
+            //presaleWeiSold + 15000
+
+            //presaleWeiSold + 21000
         });
 
     });
@@ -210,7 +244,6 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
             const weiRaised = new h.BigNumber((await this.crowdsale.weiRaised()).valueOf());
             await this.crowdsale.buyTokens(user1, {from: user1, value: this.cap.sub(weiRaised)}).should.be.fulfilled;
             const saleOver = await this.crowdsale.hasEnded({from: user1});
-            console.log(saleOver);
             await this.token.endSale({from: owner}).should.be.rejectedWith(h.EVMThrow);
             await this.crowdsale.finalize({from: owner}).should.be.fulfilled;
             const transferableTokens = await this.token.transferableTokens(user1, 0);
@@ -355,20 +388,3 @@ const tiers = [
     { amountCap: h.e2Wei(18000 + 21000), rate: 1150 },
     { amountCap: h.e2Wei(18000 + 27000), rate: 1050 },
 ];
-
-
-const tierAmountCaps = function() {
-    var tmp = [];
-    for(var i = 0; i < tiers.length; i++) {
-        tmp.push(tiers[i].amountCap);
-    }
-    return tmp;
-};
-
-const tierRates = function() {
-    var tmp = [];
-    for(var i = 0; i < tiers.length; i++) {
-        tmp.push(tiers[i].rate);
-    }
-    return tmp;
-};
