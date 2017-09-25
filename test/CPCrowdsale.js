@@ -21,7 +21,7 @@ const tiers = [
 ];
 
 contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWallet, advisorWallet, stakingWallet, privateSaleWallet]) {
-    const nonPublicTokens = new h.BigNumber(h.toWei(116158667 - 33700000));
+    const nonPublicTokens = web3.toBigNumber(h.toWei(116158667 - 33700000));
 
     const initialAirdropTokens = new h.BigNumber(h.toWei(5807933));
     const initialAdvisorTokens = new h.BigNumber(h.toWei(5807933));
@@ -220,11 +220,11 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
             post.minus(pre).should.be.bignumber.equal(this.maxWhitelistBuy);
         });
 
-        // it("allocates the correct number of tokens", async function() {
-        //     await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy});
-        //     const balance = await this.token.balanceOf(user1);
-        //     balance.should.be.bignumber.equal(h.calculateTokens(tiers, presaleWeiSold, this.maxWhitelistBuy));
-        // });
+        it("allocates the correct number of tokens", async function() {
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy});
+            const balance = await this.token.balanceOf(user1);
+            balance.should.be.bignumber.equal(h.calculateTokens(tiers, presaleWeiSold, this.maxWhitelistBuy));
+        });
     });
 
     describe("Open Whitelist period", function() {
@@ -256,11 +256,11 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
             post.minus(pre).should.be.bignumber.equal(this.maxWhitelistBuy);
         });
 
-        // it("allocates the correct number of tokens", async function() {
-        //     await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy});
-        //     const balance = await this.token.balanceOf(user1);
-        //     balance.should.be.bignumber.equal(h.calculateTokens(tiers, presaleWeiSold, buySize));
-        // });
+        it("allocates the correct number of tokens", async function() {
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.maxWhitelistBuy});
+            const balance = await this.token.balanceOf(user1);
+            balance.should.be.bignumber.equal(h.calculateTokens(tiers, presaleWeiSold, this.maxWhitelistBuy));
+        });
     });
 
     describe("Normal buying period", function() {
@@ -332,7 +332,6 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
             await this.crowdsale.buyTokens(user2, {from: user2, value: h.e2Wei(5000)}).should.be.fulfilled;
             const balance2 = new h.BigNumber(await this.token.balanceOf(user2));
             balance2.should.be.bignumber.equal(h.e2Wei((5000 - 4) * 1500 + 4 * 1350));
-
         });
     });
 
@@ -355,15 +354,15 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
             await this.crowdsale.finalize({from: owner}).should.be.rejectedWith(h.EVMThrow);
         });
 
-        // it("mints remaining Eth allocation amount of tokens to the devs", async function() {
-        //     const pre = await this.token.balanceOf(wallet);
-        //     const weiRaised = await this.crowdsale.weiRaised();
-        //     const remainingWei = (new h.BigNumber(cap)).minus(weiRaised);
-        //     const remainingTokens = h.calculateTokens(tiers, weiRaised, remainingWei);
-        //     await this.crowdsale.finalize({from: owner}).should.be.fulfilled;
-        //     const post = await this.token.balanceOf(wallet);
-        //     post.minus(pre).should.be.bignumber.equal(remainingTokens);
-        // });
+        it("mints remaining Eth allocation amount of tokens to the devs", async function() {
+            const pre = await this.token.balanceOf(wallet);
+            const weiRaised = await this.crowdsale.weiRaised();
+            const remainingWei = tiers[5].amountCap.minus(weiRaised);
+            const remainingTokens = h.calculateTokens(tiers, weiRaised, remainingWei);
+            await this.crowdsale.finalize({from: owner}).should.be.fulfilled;
+            const post = await this.token.balanceOf(wallet);
+            post.minus(pre).should.be.bignumber.equal(remainingTokens);
+        });
     });
 
     describe("Whitelist to normal period transition", function() {

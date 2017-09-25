@@ -101,24 +101,26 @@ exports.tokenToDec = function(tokenAmt) {
     return web3.toWei(tokenAmt, "ether");
 };
 
-// non-recursive implementation of `calculateTokens` function in
+// implementation of `calculateTokens` function in
 // `CPCrowdsale.sol`, written in JS
 exports.calculateTokens = function(tiers, startWei, weiAmt) {
-    var totalWei = new BigNumber(startWei);
-    var amtLeft  = new BigNumber(weiAmt);
-    var tokens   = new BigNumber(0);
+    var weiRaised = web3.toBigNumber(startWei);
+    var amtLeft = web3.toBigNumber(weiAmt);
+    var tokens = web3.toBigNumber(0);
     var capLeft;
-    for (var i=0; i<tiers.length; i++) {
-        var rate = new BigNumber(tiers[i].rate);
-        var cap  = new BigNumber(tiers[i].amountCap);
-        capLeft = cap.minus(totalWei);
-        if (amtLeft.lte(capLeft)) {
-            tokens = tokens.plus(amtLeft.times(rate));
-            break;
+    for (var i = 0; i < tiers.length; i++) {
+        var rate = web3.toBigNumber(tiers[i].rate);
+        var cap = web3.toBigNumber(tiers[i].amountCap);
+        capLeft = cap.minus(weiRaised);
+        if (capLeft.gt(0)) {
+            if (amtLeft.lte(capLeft)) {
+                tokens = tokens.plus(amtLeft.times(rate));
+                break;
+            }
+            tokens = tokens.plus(capLeft.times(rate));
+            weiRaised = weiRaised.plus(capLeft);
+            amtLeft = amtLeft.minus(capLeft);
         }
-        tokens = tokens.plus(capLeft.times(rate));
-        totalWei = totalWei.plus(capLeft);
-        amtLeft  = amtLeft.minus(capLeft);
     }
     return tokens;
 };
