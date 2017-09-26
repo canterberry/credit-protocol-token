@@ -27,11 +27,12 @@ module.exports = function(deployer, network) {
 
     else if (network == "mainnet") {
         var whitelistAddress = "0xdaF5520A1BA8D71CDb81C69c72D736dAb058C602";
-        const wallet = "";
-        const airdropWallet = "";
-        const advisorWallet = "";
-        const stakingWallet = "";
-        const privateSaleWallet = "";
+
+        const wallet = "0x010AE84C74D2Bd56801f245EA105d048C6e89B13";
+        const airdropWallet = "0x3f3a8e196B58f0EB39F783D33b8dbdC95Aaa9eE1";
+        const advisorWallet = "0x9eFf802e8df0864304Cd4bd9Ba53304b035dC4b7";
+        const stakingWallet = "0xA9FD330AC656AbCAD60F0F6cAa2F69Dd90B26137";
+        const privateSaleWallet = "0x7c380382B7e2c72BC1b642735389a096A8fE7c66";
 
         const startTime = october1st1600;
         const endTime   = november1st0000;
