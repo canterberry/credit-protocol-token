@@ -51,10 +51,6 @@ for i in "${privkeys[@]}"
 do
     geth --datadir geth/privchain --password <(echo "pass") account import <(echo $i)
 done
-# geth --datadir geth/privchain --password geth/passwordfile --unlock "0"
-# geth --etherbase '0x198e13017d2333712bd942d8b028610b95c363da' --mine 1
 
 # truffle migrate --reset --network geth
-# truffle test --network geth test/CPCrowdsale.js
-# geth attach ipc://Users/aupiff/1-work/blockmason/crowdsale-audit/tce-contracts/geth/privchain/geth.ipc
 wait

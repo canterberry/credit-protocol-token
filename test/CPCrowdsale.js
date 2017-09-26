@@ -333,6 +333,31 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
             const balance2 = new h.BigNumber(await this.token.balanceOf(user2));
             balance2.should.be.bignumber.equal(h.e2Wei((5000 - 4) * 1500 + 4 * 1350));
         });
+
+        it("tokens are transferable after sale", async function() {
+            await this.crowdsale.buyTokens(user3, {from: user3, value: h.e2Wei(1)}).should.be.fulfilled;
+            const balance3 = web3.toBigNumber(await this.token.balanceOf(user3));
+            balance3.should.be.bignumber.equal(h.e2Wei(1500));
+
+            // attempt token transfer before sale is over
+            const saleOverValDuringSale = await this.token.saleOver().valueOf();
+            assert(saleOverValDuringSale === false, "sale is not over");
+
+            await this.token.transfer(owner, h.e2Wei(1), {from: user3}).should.be.rejectedWith(h.EVMThrow);
+
+            const weiRaised = new h.BigNumber((await this.crowdsale.weiRaised()).valueOf());
+            await this.crowdsale.buyTokens(user1, {from: user1, value: this.cap.sub(weiRaised)}).should.be.fulfilled;
+
+            await this.token.endSale({from: owner}).should.be.rejectedWith(h.EVMThrow);
+            await this.crowdsale.finalize({from: owner}).should.be.fulfilled;
+
+            // attempt token transfer after sale is over
+            const saleOverValPostSale = await this.token.saleOver().valueOf();
+            assert(saleOverValPostSale === true, "sale is over");
+            await this.token.transfer(owner, h.e2Wei(0.1), {from: user3}).should.be.fulfilled;
+            await this.token.transfer(owner, h.e2Wei(1499.9), {from: user3}).should.be.fulfilled;
+        });
+
     });
 
     describe("End and finalization", function() {

@@ -128,7 +128,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     // Internal functions
 
     function createTokenContract() internal returns (MintableToken) {
-        return new CPToken(endTime);
+        return new CPToken();
     }
 
     /**
