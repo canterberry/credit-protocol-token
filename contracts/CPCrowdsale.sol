@@ -75,6 +75,37 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
 
     // Public functions
 
+    function tierIndexByWeiAmount(uint256 weiLevel) public constant returns (uint256) {
+        require(weiLevel <= cpCap);
+        for (uint256 i = 0; i < tierAmountCaps.length; i++) {
+            if (weiLevel <= tierAmountCaps[i]) {
+                return i;
+            }
+        }
+    }
+
+    /**
+     * @dev Calculates how many tokens a given amount of wei can buy at
+     * a particular level of weiRaised. Takes into account tiers of purchase
+     * bonus
+     */
+    function calculateTokens(uint256 _amountWei, uint256 _weiRaised) public constant returns (uint256) {
+        uint256 currentTier = tierIndexByWeiAmount(_weiRaised);
+        uint256 startWeiLevel = _weiRaised;
+        uint256 endWeiLevel = _amountWei.add(_weiRaised);
+        uint256 tokens = 0;
+        for (uint256 i = currentTier; i < tierAmountCaps.length; i++) {
+            if (endWeiLevel <= tierAmountCaps[i]) {
+                tokens = tokens.add((endWeiLevel.sub(startWeiLevel)).mul(tierRates[i]));
+                break;
+            } else {
+                tokens = tokens.add((tierAmountCaps[i].sub(startWeiLevel)).mul(tierRates[i]));
+                startWeiLevel = tierAmountCaps[i];
+            }
+        }
+        return tokens;
+    }
+
     function buyTokens(address beneficiary) public payable whenNotPaused {
         uint256 weiAmount = msg.value;
 
@@ -97,7 +128,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     // Internal functions
 
     function createTokenContract() internal returns (MintableToken) {
-        return new CPToken(endTime);
+        return new CPToken();
     }
 
     /**
@@ -143,37 +174,6 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
         bool cappedWhitelistOver = now > whitelistEndTime;
         bool openWhitelistPeriod = now <= openWhitelistEndTime;
         return cappedWhitelistOver && openWhitelistPeriod;
-    }
-
-    function tierIndexByWeiAmount(uint256 weiLevel) private constant returns (uint256) {
-        require(weiLevel <= cpCap);
-        for (uint256 i = 0; i < tierAmountCaps.length; i++) {
-            if (weiLevel <= tierAmountCaps[i]) {
-                return i;
-            }
-        }
-    }
-
-    /**
-     * @dev Calculates how many tokens a given amount of wei can buy
-     * Takes into account tiers of purchase bonus
-     * Recursive, but depth is limited to the number of tiers, which is 6
-     */
-    function calculateTokens(uint256 _amountWei, uint256 _weiRaised) private constant returns (uint256) {
-        uint256 currentTier = tierIndexByWeiAmount(_weiRaised);
-        uint256 startWeiLevel = _weiRaised;
-        uint256 endWeiLevel = _amountWei.add(_weiRaised);
-        uint256 tokens = 0;
-        for (uint256 i = currentTier; i < tierAmountCaps.length; i++) {
-            if (endWeiLevel <= tierAmountCaps[i]) {
-                tokens = tokens.add((endWeiLevel.sub(startWeiLevel)).mul(tierRates[i]));
-                break;
-            } else {
-                tokens = tokens.add((tierAmountCaps[i].sub(startWeiLevel)).mul(tierRates[i]));
-                startWeiLevel = tierAmountCaps[i];
-            }
-        }
-        return tokens;
     }
 
 }

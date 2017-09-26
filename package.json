@@ -25,6 +25,6 @@
     "chai-bignumber": "^2.0.1",
     "ethereumjs-testrpc": "4.1.1",
     "truffle": "3.4.9",
-    "zeppelin-solidity": "git@github.com:OpenZeppelin/zeppelin-solidity.git#74e416f04ff55d398b5a7d77a5410b273f59449f"
+    "zeppelin-solidity": "1.3.0"
   }
 }
