@@ -1,7 +1,8 @@
 # CPToken Crowdsale (BCPT)
 
 ## Audit Reports
-[01 First Audit Report](audit.md)
+[01 First Audit Report](audit01.md)
+[02 Second Audit Report](audit02.md)
 
 ## Solidity Compiler Config
 
