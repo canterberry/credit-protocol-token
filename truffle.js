@@ -20,6 +20,11 @@ module.exports = {
       port: 8545,
       network_id: 3
     },
+    mainnet: {
+      host: "localhost",
+      port: 8545,
+      network_id: 1
+    },
     ropstenNoData: {
       host: "localhost",
       port: 8545,
