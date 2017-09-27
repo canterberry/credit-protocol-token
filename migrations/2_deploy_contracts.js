@@ -40,10 +40,10 @@ module.exports = function(deployer, network) {
         const tstakingWallet = "0xA9FD330AC656AbCAD60F0F6cAa2F69Dd90B26137";
         const tprivateSaleWallet = "0x7c380382B7e2c72BC1b642735389a096A8fE7c66";
 
-        const tstartTime = 0;
-        const tendTime   = 0;
-        const twhitelistEndTime = new web3.BigNumber(startTime + 15*60); //15 mins
-        const topenWhitelistEndTime = new web3.BigNumber(startTime + 25*60); //25 mins
+        const tstartTime = 0; //SET THIS
+        const tendTime   = new web3.BigNumber(startTime + 30*60); //30 mins
+        const twhitelistEndTime = new web3.BigNumber(startTime + 10*60); //10 mins
+        const topenWhitelistEndTime = new web3.BigNumber(startTime + 20*60); //20 mins
         deployer.deploy(CPCrowdsale, tstartTime, tendTime, twhitelistEndTime, topenWhitelistEndTime, twallet, twhitelistAddress, tairdropWallet, tadvisorWallet, tstakingWallet, tprivateSaleWallet);
     }
 
