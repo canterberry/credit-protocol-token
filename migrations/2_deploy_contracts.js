@@ -10,6 +10,8 @@ module.exports = function(deployer, network) {
     const sevenDays = 7 * 24 * 60 * 60;
     const thirtyDays = 30 * 24 * 60 * 60;
 
+    const owner = "0x8f561336199be656619dac5de38861df5b4cf01c";
+
 
     if (network == "mainnet") {
         var whitelistAddress = "0xdaF5520A1BA8D71CDb81C69c72D736dAb058C602";
@@ -34,17 +36,17 @@ module.exports = function(deployer, network) {
     if (network == "mainnetTest") {
         var twhitelistAddress = "0xdaF5520A1BA8D71CDb81C69c72D736dAb058C602";
 
-        const twallet = "0x010AE84C74D2Bd56801f245EA105d048C6e89B13";
-        const tairdropWallet = "0x3f3a8e196B58f0EB39F783D33b8dbdC95Aaa9eE1";
-        const tadvisorWallet = "0x9eFf802e8df0864304Cd4bd9Ba53304b035dC4b7";
-        const tstakingWallet = "0xA9FD330AC656AbCAD60F0F6cAa2F69Dd90B26137";
-        const tprivateSaleWallet = "0x7c380382B7e2c72BC1b642735389a096A8fE7c66";
+        const twallet = "0xF617CC9DE7c4392D30dB54D7358719dd22C04eb8";
+        const tairdropWallet = "0x47Eb2be0E24b3e8a69Ff118aAe6A6dFEE05D4e37";
+        const tadvisorWallet = "0xDDD3CF3Ac1351D67214a50D2fbC889e5b860BC06";
+        const tstakingWallet = "0x3184d822758787a7fa82B032B678000FAf81FA4C";
+        const tprivateSaleWallet = "0x3bd170a319a1096dB90ba271B5266b79Eec6315b";
 
-        const tstartTime = 0; //SET THIS
-        const tendTime   = new web3.BigNumber(startTime + 30*60); //30 mins
-        const twhitelistEndTime = new web3.BigNumber(startTime + 10*60); //10 mins
-        const topenWhitelistEndTime = new web3.BigNumber(startTime + 20*60); //20 mins
-        deployer.deploy(CPCrowdsale, tstartTime, tendTime, twhitelistEndTime, topenWhitelistEndTime, twallet, twhitelistAddress, tairdropWallet, tadvisorWallet, tstakingWallet, tprivateSaleWallet);
+        const tstartTime = ; //SET THIS
+        const tendTime   = new web3.BigNumber(tstartTime + 30*60); //30 mins
+        const twhitelistEndTime = new web3.BigNumber(tstartTime + 10*60); //10 mins
+        const topenWhitelistEndTime = new web3.BigNumber(tstartTime + 20*60); //20 mins
+        deployer.deploy(CPCrowdsale, tstartTime, tendTime, twhitelistEndTime, topenWhitelistEndTime, twallet, twhitelistAddress, tairdropWallet, tadvisorWallet, tstakingWallet, tprivateSaleWallet, {gas: 4800000, gasPrice: 21000000000});
     }
 
 

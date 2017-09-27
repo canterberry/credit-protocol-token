@@ -25,6 +25,11 @@ module.exports = {
       port: 8545,
       network_id: 1
     },
+    mainnetTest: {
+      host: "localhost",
+      port: 8545,
+      network_id: 1
+    },
     ropstenNoData: {
       host: "localhost",
       port: 8545,
