@@ -12,7 +12,7 @@ const tstartTime = 1506592219; //SET THIS
 const tendTime   = tstartTime + 30*60; //30 mins
 const twhitelistEndTime = tstartTime + 10*60; //10 mins
 const topenWhitelistEndTime = tstartTime + 20*60; //20 mins
-console.log(cs.contract_name);
-var CPCrowdsale = web3.eth.contract(cs.abi);
+console.log(csInfo.contract_name);
+var CPCrowdsale = web3.eth.contract(csInfo.abi);
 
-var cpData = CPCrowdsale.new.getData(tstartTime, tendTime, twhitelistEndTime, topenWhitelistEndTime, twallet, twhitelistAddress, tairdropWallet, tadvisorWallet, tstakingWallet, tprivateSaleWallet, {gas: 4800000, gasPrice: 21000000000, from: owner});
+var cpData = CPCrowdsale.new.getData(tstartTime, tendTime, twhitelistEndTime, topenWhitelistEndTime, twallet, twhitelistAddress, tairdropWallet, tadvisorWallet, tstakingWallet, tprivateSaleWallet, {gas: 5000000, gasPrice: 21000000000, from: owner, data: csInfo.unlinked_binary});

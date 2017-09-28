@@ -1,9 +1,24 @@
 <html>
   <head>
     <script src="./web3.min.js"></script>
-    <!--    <script src="./deploy.js"></script> -->
-    <script type="text/javascript">
-      console.log(web3);
-    </script>
+<!--    <script src="./abi.js"></script> -->
+<script src="./altCs.js"></script>
+<script src="./deploy.js"></script>
   </head>
+  <body>
+    <div id="timtime"></div>
+    <script type="text/javascript">
+      setTimeout(function() {
+        //        console.log(web3);
+//        console.log(CPCrowdsale);
+        //console.log(cpData);
+        //document.getElementById("timtime").innerHTML = cpData;
+        web3.eth.estimateGas({data: cpData}, function(r, err) {
+          console.log(r);
+          console.log(err);
+        });
+      }, 1000);
+    </script>
+
+  </body>
 </html>
