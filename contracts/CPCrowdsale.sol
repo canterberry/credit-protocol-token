@@ -1,8 +1,8 @@
 pragma solidity 0.4.15;
 
 import './CPToken.sol';
-import './AbstractWhitelist.sol';
-import './AbstractTiers.sol';
+import './DPIcoWhitelist.sol';
+import './Tiers.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 import 'zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol';
@@ -30,8 +30,8 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     uint256 public initialPrivateSaleTokens = 36000000 * (10 ** decimals);
     uint256 public initialDevTokens = nonPublicTokens - (initialAirdropTokens + initialAdvisorTokens + initialStakingTokens + initialPrivateSaleTokens);
 
-    AbstractWhitelist private aw;
-    AbstractTiers private at;
+    DPIcoWhitelist private aw;
+    Tiers private at;
     mapping (address => bool) private hasPurchased; // has whitelist address purchased already
     uint256 public whitelistEndTime;
     uint256 public maxWhitelistPurchaseWei;
@@ -53,9 +53,9 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
         token.mint(stakingWallet, initialStakingTokens);
         token.mint(privateSaleWallet, initialPrivateSaleTokens);
 
-        aw = AbstractWhitelist(_whitelistContract);
+        aw = DPIcoWhitelist(_whitelistContract);
         require (aw.numUsers() > 0);
-        at = AbstractTiers(_tiersContract);
+        at = Tiers(_tiersContract);
         whitelistEndTime = _whitelistEndTime;
         openWhitelistEndTime = _openWhitelistEndTime;
         weiRaised = presaleWeiSold;

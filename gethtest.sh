@@ -1,4 +1,3 @@
-
 #!/bin/bash
 function cleanup {
     kill -9 $geth_pid
@@ -7,6 +6,7 @@ function cleanup {
 
 trap cleanup EXIT
 
+rm -rf build
 mkdir geth && mkdir geth/privchain
 cat << EOF > geth/genesis.json
 {
