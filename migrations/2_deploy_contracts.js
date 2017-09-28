@@ -32,6 +32,7 @@ module.exports = function(deployer, network, accounts) {
 
     else if (network == "mainnetTest") {
         var twhitelistAddress = "0xdaF5520A1BA8D71CDb81C69c72D736dAb058C602";
+        var ttiersAddress = "0x5e619b32e3b11023d7150792f30eb6ad6eab6f88";
 
         const twallet = "0xF617CC9DE7c4392D30dB54D7358719dd22C04eb8";
         const tairdropWallet = "0x47Eb2be0E24b3e8a69Ff118aAe6A6dFEE05D4e37";
@@ -43,8 +44,7 @@ module.exports = function(deployer, network, accounts) {
         const tendTime   = new web3.BigNumber(tstartTime + 30*60); //30 mins
         const twhitelistEndTime = new web3.BigNumber(tstartTime + 10*60); //10 mins
         const topenWhitelistEndTime = new web3.BigNumber(tstartTime + 20*60); //20 mins
-        //FIX PARAMS BELOW
-        //deployer.deploy(CPCrowdsale, tstartTime, tendTime, twhitelistEndTime, topenWhitelistEndTime, twallet, twhitelistAddress, tairdropWallet, tadvisorWallet, tstakingWallet, tprivateSaleWallet, {gas: 4900000, gasPrice: 21000000000});
+        deployer.deploy(CPCrowdsale, tstartTime, tendTime, twhitelistEndTime, topenWhitelistEndTime, twallet, ttiersAddress, twhitelistAddress, tairdropWallet, tadvisorWallet, tstakingWallet, tprivateSaleWallet, {gas: 7000000, gasPrice: 4000000000});
     }
 
 
@@ -52,6 +52,8 @@ module.exports = function(deployer, network, accounts) {
 
     else if (network == "ropsten") {
         var ropstenWhitelistAddress = "0x25d48524424bea76d51eb2056ca83511a6e58ef7";
+        var ropstenTiersAddress = "";
+
         //below are metamask accounts
         const ropstenWallet = "0x406Dd5315e6B63d6F1bAd0C4ab9Cd8EBA6Bb1bD2";
         const ropstenAirdropWallet = "0xE241c02E638ce0a1beFEC039FF4551B79F2Cf8D2";
@@ -62,8 +64,7 @@ module.exports = function(deployer, network, accounts) {
         const ropstenEndTime   = november1st0000;
         const ropstenWhitelistEndTime = new web3.BigNumber(ropstenStartTime + fiveDays);
         const ropstenOpenWhitelistEndTime = new web3.BigNumber(ropstenStartTime + sevenDays);
-        //FIX PARAMS BELOW
-//        deployer.deploy(CPCrowdsale, ropstenStartTime, ropstenEndTime, ropstenWhitelistEndTime, ropstenOpenWhitelistEndTime, ropstenWallet, ropstenWhitelistAddress, ropstenAirdropWallet, ropstenAdvisorWallet, ropstenStakingWallet, ropstenPrivateSaleWallet, {gas: 6000000, gasPrice: 21000000000});
+        deployer.deploy(CPCrowdsale, ropstenStartTime, ropstenEndTime, ropstenWhitelistEndTime, ropstenOpenWhitelistEndTime, ropstenWallet, ropstenTiersAddress, ropstenWhitelistAddress, ropstenAirdropWallet, ropstenAdvisorWallet, ropstenStakingWallet, ropstenPrivateSaleWallet, {gas: 7000000, gasPrice: 10000000000});
     }
 
     else if (network === "console") {
