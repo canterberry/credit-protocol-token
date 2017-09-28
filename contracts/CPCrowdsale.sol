@@ -11,12 +11,10 @@ import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     using SafeMath for uint256;
 
-    /*
     address public airdropWallet;
     address public advisorWallet;
     address public stakingWallet;
     address public privateSaleWallet;
-    */
 
     uint256 public constant decimals = 18;
     uint256 public cpCap = 45000 ether;
@@ -57,21 +55,17 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
         FinalizableCrowdsale()
         Crowdsale(_startTime, _endTime, dummyRate, _wallet)  // rate is a dummy value; we use tiers instead
     {
-      /*
         airdropWallet     = _airdropWallet;
         advisorWallet     = _advisorWallet;
         stakingWallet     = _stakingWallet;
         privateSaleWallet = _privateSaleWallet;
-      */
 
         token.mint(_wallet, initialDevTokens);
 
-        /*
         token.mint(airdropWallet, initialAirdropTokens);
         token.mint(advisorWallet, initialAdvisorTokens);
         token.mint(stakingWallet, initialStakingTokens);
         token.mint(privateSaleWallet, initialPrivateSaleTokens);
-        */
 
         aw = AbstractWhitelist(_whitelistContract);
         require (aw.numUsers() > 0);
