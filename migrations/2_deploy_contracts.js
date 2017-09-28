@@ -16,6 +16,7 @@ module.exports = function(deployer, network, accounts) {
 
     if (network == "mainnet") {
         var whitelistAddress = "0xdaF5520A1BA8D71CDb81C69c72D736dAb058C602";
+        var tiersAddress     = "0x5e619b32e3b11023d7150792f30eb6ad6eab6f88";
 
         const wallet = "0x010AE84C74D2Bd56801f245EA105d048C6e89B13";
         const airdropWallet = "0x3f3a8e196B58f0EB39F783D33b8dbdC95Aaa9eE1";
@@ -27,8 +28,7 @@ module.exports = function(deployer, network, accounts) {
         const endTime   = november1st0000;
         const whitelistEndTime = new web3.BigNumber(startTime + fiveDays);
         const openWhitelistEndTime = new web3.BigNumber(startTime + sevenDays);
-        //FIX PARAMS BELOW
-     //   deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, openWhitelistEndTime, wallet, whitelistAddress, airdropWallet, advisorWallet, stakingWallet, privateSaleWallet);
+        deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, openWhitelistEndTime, wallet, tiersAddress, whitelistAddress, airdropWallet, advisorWallet, stakingWallet, privateSaleWallet);
     }
 
 
