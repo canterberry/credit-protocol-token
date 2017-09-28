@@ -1,3 +1,4 @@
+var Tiers = artifacts.require("./Tiers.sol");
 var DPIcoWhitelist = artifacts.require("./DPIcoWhitelist.sol");
 var CPCrowdsale = artifacts.require("./CPCrowdsale.sol");
 
@@ -5,6 +6,7 @@ module.exports = function(deployer, network, accounts) {
     const october1st1600 = 1506873600;
     const november1st0000 = 1509494400;
 
+    const twoDays = 2 * 24 * 60 * 60;
     const fiveDays = 5 * 24 * 60 * 60;
     const sevenDays = 7 * 24 * 60 * 60;
     const thirtyDays = 30 * 24 * 60 * 60;
@@ -90,26 +92,34 @@ module.exports = function(deployer, network, accounts) {
             return CPCrowdsale.deployed();
         });
     } else if (network === "geth") {
+        const wallet = web3.eth.accounts[0]
+        const deployDelay = 10000;
         var whitelist;
-        deployer.deploy(DPIcoWhitelist, {from: web3.eth.accounts[0]}).then(function() {
-                return DPIcoWhitelist.deployed();
-        });
-
-        //     .then(whitelistContract => {
-        //     whitelist = whitelistContract;
-        //     return whitelist.setSignUpOnOff(true);
-        // }).then(() => {
-        //     whitelist.signUp({from: web3.eth.accounts[1]});
-        // }).then(() => {
-        //     const result = web3.eth.getBlock("latest");
-        //     const now = result.timestamp;
-        //     const startTime = new web3.BigNumber(now + deployDelay);
-        //     const endTime = new web3.BigNumber(now + thirtyDays);
-        //     const whitelistEndTime = new web3.BigNumber(now + fiveDays);
-        //     const openWhitelistEndTime = new web3.BigNumber(now + fiveDays + twoDays);
-        //     return deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, openWhitelistEndTime, wallet, whitelist.address, wallet, wallet, wallet, wallet);
-        // }).then(() => {
-        //     return CPCrowdsale.deployed();
-    // });
+        var tiersContract;
+        deployer.deploy(DPIcoWhitelist, {from: web3.eth.accounts[0]}).then(s => {
+            console.log(s);
+            return DPIcoWhitelist.deployed();
+        }).then(whitelistContract => {
+            whitelist = whitelistContract;
+            return whitelist.setSignUpOnOff(true);
+        }).then(() => {
+            return whitelist.signUp({from: web3.eth.accounts[1]});
+        }).then(() => {
+            return deployer.deploy(Tiers, {from: web3.eth.accounts[0]});
+        }).then(s => {
+            console.log(s);
+            return Tiers.deployed();
+        }).then(tContract => {
+            tiersContract = tContract;
+            const result = web3.eth.getBlock("latest");
+            const now = result.timestamp;
+            const startTime = web3.toBigNumber(now + deployDelay);
+            const endTime = web3.toBigNumber(now + thirtyDays);
+            const whitelistEndTime = new web3.BigNumber(now + fiveDays);
+            const openWhitelistEndTime = new web3.BigNumber(now + fiveDays + twoDays);
+            return deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, openWhitelistEndTime, wallet, tiersContract.address, whitelist.address, wallet, wallet, wallet, wallet, {from: web3.eth.accounts[0]});
+          }).catch(function(e) {
+              console.log(e);
+          });
     }
 };

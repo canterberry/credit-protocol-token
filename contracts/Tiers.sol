@@ -9,28 +9,28 @@ contract Tiers {
   uint256 public presaleWeiSold = 18000 ether;
 
   uint256[6] public tierAmountCaps =  [ presaleWeiSold
-                                        , presaleWeiSold + 5000 ether
-                                        , presaleWeiSold + 10000 ether
-                                        , presaleWeiSold + 15000 ether
-                                        , presaleWeiSold + 21000 ether
-                                        , cpCap
-                                        ];
+                                      , presaleWeiSold + 5000 ether
+                                      , presaleWeiSold + 10000 ether
+                                      , presaleWeiSold + 15000 ether
+                                      , presaleWeiSold + 21000 ether
+                                      , cpCap
+                                      ];
   uint256[6] public tierRates = [ 2000 // tierRates[0] should never be used, but it is accurate
-                                  , 1500 // Tokens are purchased at a rate of 105-150
-                                  , 1350 // per deciEth, depending on purchase tier.
-                                  , 1250 // tierRates[i] is the purchase rate of tier_i
-                                  , 1150
-                                  , 1050
-                                  ];
+                                , 1500 // Tokens are purchased at a rate of 105-150
+                                , 1350 // per deciEth, depending on purchase tier.
+                                , 1250 // tierRates[i] is the purchase rate of tier_i
+                                , 1150
+                                , 1050
+                                ];
 
-  function tierIndexByWeiAmount(uint256 weiLevel) public constant returns (uint256) {
-    require(weiLevel <= cpCap);
-    for (uint256 i = 0; i < tierAmountCaps.length; i++) {
-      if (weiLevel <= tierAmountCaps[i]) {
-        return i;
-      }
+    function tierIndexByWeiAmount(uint256 weiLevel) public constant returns (uint256) {
+        require(weiLevel <= cpCap);
+        for (uint256 i = 0; i < tierAmountCaps.length; i++) {
+            if (weiLevel <= tierAmountCaps[i]) {
+                return i;
+            }
+        }
     }
-  }
 
     /**
      * @dev Calculates how many tokens a given amount of wei can buy at
@@ -53,6 +53,5 @@ contract Tiers {
         }
         return tokens;
     }
-
 
 }
