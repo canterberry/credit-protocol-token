@@ -25,7 +25,8 @@ module.exports = function(deployer, network, accounts) {
         const endTime   = november1st0000;
         const whitelistEndTime = new web3.BigNumber(startTime + fiveDays);
         const openWhitelistEndTime = new web3.BigNumber(startTime + sevenDays);
-        deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, openWhitelistEndTime, wallet, whitelistAddress, airdropWallet, advisorWallet, stakingWallet, privateSaleWallet);
+        //FIX PARAMS BELOW
+     //   deployer.deploy(CPCrowdsale, startTime, endTime, whitelistEndTime, openWhitelistEndTime, wallet, whitelistAddress, airdropWallet, advisorWallet, stakingWallet, privateSaleWallet);
     }
 
 
@@ -42,7 +43,8 @@ module.exports = function(deployer, network, accounts) {
         const tendTime   = new web3.BigNumber(tstartTime + 30*60); //30 mins
         const twhitelistEndTime = new web3.BigNumber(tstartTime + 10*60); //10 mins
         const topenWhitelistEndTime = new web3.BigNumber(tstartTime + 20*60); //20 mins
-        deployer.deploy(CPCrowdsale, tstartTime, tendTime, twhitelistEndTime, topenWhitelistEndTime, twallet, twhitelistAddress, tairdropWallet, tadvisorWallet, tstakingWallet, tprivateSaleWallet, {gas: 4900000, gasPrice: 21000000000});
+        //FIX PARAMS BELOW
+        //deployer.deploy(CPCrowdsale, tstartTime, tendTime, twhitelistEndTime, topenWhitelistEndTime, twallet, twhitelistAddress, tairdropWallet, tadvisorWallet, tstakingWallet, tprivateSaleWallet, {gas: 4900000, gasPrice: 21000000000});
     }
 
 
@@ -60,7 +62,8 @@ module.exports = function(deployer, network, accounts) {
         const ropstenEndTime   = november1st0000;
         const ropstenWhitelistEndTime = new web3.BigNumber(ropstenStartTime + fiveDays);
         const ropstenOpenWhitelistEndTime = new web3.BigNumber(ropstenStartTime + sevenDays);
-        deployer.deploy(CPCrowdsale, ropstenStartTime, ropstenEndTime, ropstenWhitelistEndTime, ropstenOpenWhitelistEndTime, ropstenWallet, ropstenWhitelistAddress, ropstenAirdropWallet, ropstenAdvisorWallet, ropstenStakingWallet, ropstenPrivateSaleWallet, {gas: 6000000, gasPrice: 21000000000});
+        //FIX PARAMS BELOW
+//        deployer.deploy(CPCrowdsale, ropstenStartTime, ropstenEndTime, ropstenWhitelistEndTime, ropstenOpenWhitelistEndTime, ropstenWallet, ropstenWhitelistAddress, ropstenAirdropWallet, ropstenAdvisorWallet, ropstenStakingWallet, ropstenPrivateSaleWallet, {gas: 6000000, gasPrice: 21000000000});
     }
 
     else if (network === "console") {
