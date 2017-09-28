@@ -20,9 +20,9 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     uint256 public openWhitelistEndTime;
 
     function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, address _tiersContract, address _whitelistContract, address _airdropWallet, address _advisorWallet, address _stakingWallet, address _privateSaleWallet)
-        CappedCrowdsale(45000 ether)
+        CappedCrowdsale(45000 ether) // crowdsale capped at 45000 ether
         FinalizableCrowdsale()
-        Crowdsale(_startTime, _endTime, 1, _wallet)  // rate is a dummy value; we use tiers instead
+        Crowdsale(_startTime, _endTime, 1, _wallet)  // rate = 1 is a dummy value; we use tiers instead
     {
         token.mint(_wallet, 23226934 * (10 ** 18));
         token.mint(_airdropWallet, 5807933 * (10 ** 18));
@@ -35,7 +35,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
         at = Tiers(_tiersContract);
         whitelistEndTime = _whitelistEndTime;
         openWhitelistEndTime = _openWhitelistEndTime;
-        weiRaised = 18000 ether;
+        weiRaised = 18000 ether; // 18K ether was sold during presale
         maxWhitelistPurchaseWei = (cap.sub(weiRaised)).div(aw.numUsers());
     }
 
