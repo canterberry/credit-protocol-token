@@ -2,7 +2,7 @@ pragma solidity 0.4.15;
 
 import './CPToken.sol';
 import './DPIcoWhitelist.sol';
-import './Tiers.sol';
+import './Helpers.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
 import 'zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol';
@@ -13,16 +13,16 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     using SafeMath for uint256;
 
     DPIcoWhitelist private aw;
-    Tiers private at;
+    Helpers private ah;
     mapping (address => bool) private hasPurchased; // has whitelist address purchased already
     uint256 public whitelistEndTime;
     uint256 public maxWhitelistPurchaseWei;
     uint256 public openWhitelistEndTime;
 
-    function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, address _tiersContract, address _whitelistContract, address _airdropWallet, address _advisorWallet, address _stakingWallet, address _privateSaleWallet)
+    function CPCrowdsale(uint256 _startTime, uint256 _endTime, uint256 _whitelistEndTime, uint256 _openWhitelistEndTime, address _wallet, address _helpersContract, address _whitelistContract, address _airdropWallet, address _advisorWallet, address _stakingWallet, address _privateSaleWallet)
         CappedCrowdsale(45000 ether)
         FinalizableCrowdsale()
-        Crowdsale(_startTime, _endTime, 1, _wallet)  // rate is a dummy value; we use tiers instead
+        Crowdsale(_startTime, _endTime, 1, _wallet)  // 1 is a dummy value; we use tiers instead
     {
         token.mint(_wallet, 23226934 * (10 ** 18));
         token.mint(_airdropWallet, 5807933 * (10 ** 18));
@@ -32,7 +32,7 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
 
         aw = DPIcoWhitelist(_whitelistContract);
         require (aw.numUsers() > 0);
-        at = Tiers(_tiersContract);
+        ah = Helpers(_helpersContract);
         whitelistEndTime = _whitelistEndTime;
         openWhitelistEndTime = _openWhitelistEndTime;
         weiRaised = 18000 ether;
@@ -45,14 +45,16 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
 
         require(beneficiary != 0x0);
         require(validPurchase());
-        require(!isWhitelistPeriod()
-             || whitelistValidPurchase(msg.sender, beneficiary, weiAmount));
-        require(!isOpenWhitelistPeriod()
-             || openWhitelistValidPurchase(msg.sender, beneficiary));
+
+        require(!ah.isWhitelistPeriod(now, startTime, whitelistEndTime)
+                || ah.whitelistValidPurchase(msg.sender, beneficiary, weiAmount, hasPurchased[beneficiary], maxWhitelistPurchaseWei, aw.isSignedUp(beneficiary)));
+
+        require(!ah.isOpenWhitelistPeriod(now, whitelistEndTime, openWhitelistEndTime)
+                || ah.openWhitelistValidPurchase(msg.sender, beneficiary, aw.isSignedUp(beneficiary)));
 
         hasPurchased[beneficiary] = true;
 
-        uint256 tokens = at.calculateTokens(weiAmount, weiRaised);
+        uint256 tokens = ah.calculateTokens(weiAmount, weiRaised);
         weiRaised = weiRaised.add(weiAmount);
         token.mint(beneficiary, tokens);
         TokenPurchase(msg.sender, beneficiary, weiAmount, tokens);
@@ -72,42 +74,12 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     function finalization() internal {
         uint256 remainingWei = cap.sub(weiRaised);
         if (remainingWei > 0) {
-            uint256 remainingDevTokens = at.calculateTokens(remainingWei, weiRaised);
+            uint256 remainingDevTokens = ah.calculateTokens(remainingWei, weiRaised);
             token.mint(wallet, remainingDevTokens);
         }
         CPToken(token).endSale();
         token.finishMinting();
         super.finalization();
-    }
-
-    // Private functions
-
-    // can't override `validPurchase` because need to pass additional values
-    function whitelistValidPurchase(address buyer, address beneficiary, uint256 amountWei) private constant returns (bool) {
-        bool beneficiaryPurchasedPreviously = hasPurchased[beneficiary];
-        bool belowMaxWhitelistPurchase = amountWei <= maxWhitelistPurchaseWei;
-        return (openWhitelistValidPurchase(buyer, beneficiary)
-                && !beneficiaryPurchasedPreviously
-                && belowMaxWhitelistPurchase);
-    }
-
-    // @return true if `now` is within the bounds of the whitelist period
-    function isWhitelistPeriod() private constant returns (bool) {
-        return (now <= whitelistEndTime && now >= startTime);
-    }
-
-    // can't override `validPurchase` because need to pass additional values
-    function openWhitelistValidPurchase(address buyer, address beneficiary) private constant returns (bool) {
-        bool buyerIsBeneficiary = buyer == beneficiary;
-        bool signedup = aw.isSignedUp(beneficiary);
-        return (buyerIsBeneficiary && signedup);
-    }
-
-    // @return true if `now` is within the bounds of the open whitelist period
-    function isOpenWhitelistPeriod() private constant returns (bool) {
-        bool cappedWhitelistOver = now > whitelistEndTime;
-        bool openWhitelistPeriod = now <= openWhitelistEndTime;
-        return cappedWhitelistOver && openWhitelistPeriod;
     }
 
 }

@@ -5,8 +5,8 @@ const should = require('chai')
           .use(require('chai-bignumber')(h.BigNumber))
           .should();
 
-const CPCrowdsale = artifacts.require('./helpers/CPCrowdsale.sol');
-const Tiers = artifacts.require('./helpers/Tiers.sol');
+const CPCrowdsale = artifacts.require('./CPCrowdsale.sol');
+const Helpers = artifacts.require('./Helpers.sol');
 const CPToken = artifacts.require("./CPToken.sol");
 const Whitelist = artifacts.require("./DPIcoWhitelist.sol");
 
@@ -56,9 +56,9 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
         await this.whitelist.signUp({from: user1});
         await this.whitelist.signUp({from: user2});
 
-        this.tiersContract = await Tiers.new({from: owner});
+        this.helpersContract = await Helpers.new({from: owner});
 
-        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, this.openWhitelistEndTime, wallet, this.tiersContract.address, this.whitelist.address, airdropWallet, advisorWallet, stakingWallet, privateSaleWallet, {from: owner});
+        this.crowdsale = await CPCrowdsale.new(this.startTime, this.endTime, this.whitelistEndTime, this.openWhitelistEndTime, wallet, this.helpersContract.address, this.whitelist.address, airdropWallet, advisorWallet, stakingWallet, privateSaleWallet, {from: owner});
         this.token  = CPToken.at(await this.crowdsale.token());
         this.maxWhitelistBuy = new h.BigNumber((await this.crowdsale.maxWhitelistPurchaseWei()).valueOf());
         this.thirdMaxWhitelistBuy = this.maxWhitelistBuy.div(3);
@@ -69,19 +69,19 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
     describe("calculateTokens and tierIndexByWeiAmount", function() {
 
         it("tierIndexByWeiAmount produces the correct tier values", async function() {
-            const r1 = await this.tiersContract.tierIndexByWeiAmount(presaleWeiSold, {from: user1}).should.be.fulfilled;
+            const r1 = await this.helpersContract.tierIndexByWeiAmount(presaleWeiSold, {from: user1}).should.be.fulfilled;
             r1.should.be.bignumber.equal(web3.toBigNumber(0));
-            const r2 = await this.tiersContract.tierIndexByWeiAmount(0, {from: user1}).should.be.fulfilled;
+            const r2 = await this.helpersContract.tierIndexByWeiAmount(0, {from: user1}).should.be.fulfilled;
             r2.should.be.bignumber.equal(web3.toBigNumber(0));
-            const r3 = await this.tiersContract.tierIndexByWeiAmount(h.e2Wei(1), {from: user1}).should.be.fulfilled;
+            const r3 = await this.helpersContract.tierIndexByWeiAmount(h.e2Wei(1), {from: user1}).should.be.fulfilled;
             r3.should.be.bignumber.equal(web3.toBigNumber(0));
-            const r4 = await this.tiersContract.tierIndexByWeiAmount(h.e2Wei(1000).add(presaleWeiSold), {from: user1}).should.be.fulfilled;
+            const r4 = await this.helpersContract.tierIndexByWeiAmount(h.e2Wei(1000).add(presaleWeiSold), {from: user1}).should.be.fulfilled;
             r4.should.be.bignumber.equal(web3.toBigNumber(1));
-            const r5 = await this.tiersContract.tierIndexByWeiAmount(h.e2Wei(1).add(tiers[1].amountCap), {from: user1}).should.be.fulfilled;
+            const r5 = await this.helpersContract.tierIndexByWeiAmount(h.e2Wei(1).add(tiers[1].amountCap), {from: user1}).should.be.fulfilled;
             r5.should.be.bignumber.equal(web3.toBigNumber(2));
-            const r6 = await this.tiersContract.tierIndexByWeiAmount(tiers[5].amountCap, {from: user1}).should.be.fulfilled;
+            const r6 = await this.helpersContract.tierIndexByWeiAmount(tiers[5].amountCap, {from: user1}).should.be.fulfilled;
             r6.should.be.bignumber.equal(web3.toBigNumber(5));
-            await this.tiersContract.tierIndexByWeiAmount(tiers[5].amountCap.add(h.e2Wei(1)), {from: user1}).should.be.rejectedWith(h.EVMThrow);
+            await this.helpersContract.tierIndexByWeiAmount(tiers[5].amountCap.add(h.e2Wei(1)), {from: user1}).should.be.rejectedWith(h.EVMThrow);
         });
 
         it("calculateTokens produces the proper token amounts", async function() {
@@ -91,46 +91,46 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
             // presaleWeiSold + 2000 eth raised, 19000 eth purchase
             // = 1500 * 3000 + 1350 * 5000 + 1250 * 5000 + 1150 * 6000
             // = 24400000 nominal CP tokens
-            const r1 = await this.tiersContract.calculateTokens(h.e2Wei(19000), tiers[0].amountCap.add(h.e2Wei(2000)), {from: user1}).should.be.fulfilled;
+            const r1 = await this.helpersContract.calculateTokens(h.e2Wei(19000), tiers[0].amountCap.add(h.e2Wei(2000)), {from: user1}).should.be.fulfilled;
             r1.should.be.bignumber.equal(h.e2Wei(24400000));
 
             // presaleWeiSold + 2000 eth raised, 14000 eth purchase
             // = 1500 * 3000 + 1350 * 5000 + 1250 * 5000 + 1150 * 1000
             // = 18650000 nominal CP tokens
-            const r2 = await this.tiersContract.calculateTokens(h.e2Wei(14000), tiers[0].amountCap.add(h.e2Wei(2000)), {from: user1}).should.be.fulfilled;
+            const r2 = await this.helpersContract.calculateTokens(h.e2Wei(14000), tiers[0].amountCap.add(h.e2Wei(2000)), {from: user1}).should.be.fulfilled;
             r2.should.be.bignumber.equal(h.e2Wei(18650000));
 
             // presaleWeiSold + 6000 eth raised, 20000 eth purchase
             // = 1350 * 4000 + 1250 * 5000 + 1150 * 6000 + 1050 * 5000
             // = 23800000 nominal CP tokens
-            const r3 = await this.tiersContract.calculateTokens(h.e2Wei(20000), tiers[0].amountCap.add(h.e2Wei(6000)), {from: user1}).should.be.fulfilled;
+            const r3 = await this.helpersContract.calculateTokens(h.e2Wei(20000), tiers[0].amountCap.add(h.e2Wei(6000)), {from: user1}).should.be.fulfilled;
             r3.should.be.bignumber.equal(h.e2Wei(23800000));
 
             // presaleWeiSold + 6.78 eth raised, 6003.894 eth purchase
             // = (5000 - 6.78) * 1500 + (6000.894 - (5000 - 6.78)) * 1350
             // = 8850189.9 nominal CP tokens
-            const r4 = await this.tiersContract.calculateTokens(h.e2Wei(6000.894), tiers[0].amountCap.add(h.e2Wei(6.78)), {from: user1}).should.be.fulfilled;
+            const r4 = await this.helpersContract.calculateTokens(h.e2Wei(6000.894), tiers[0].amountCap.add(h.e2Wei(6.78)), {from: user1}).should.be.fulfilled;
             r4.should.be.bignumber.equal(h.e2Wei(8850189.9));
 
             for (var i = 1; i < tiers.length; i++) {
                 // previous cap raised, 0 wei purchase
-                var p1 = await this.tiersContract.calculateTokens(0, tiers[i - 1].amountCap, {from: user1}).should.be.fulfilled;
+                var p1 = await this.helpersContract.calculateTokens(0, tiers[i - 1].amountCap, {from: user1}).should.be.fulfilled;
                 p1.should.be.bignumber.equal(web3.toBigNumber(0));
 
                 // previous cap raised, one wei purchase
-                var p2 = await this.tiersContract.calculateTokens(1, tiers[i - 1].amountCap, {from: user1}).should.be.fulfilled;
+                var p2 = await this.helpersContract.calculateTokens(1, tiers[i - 1].amountCap, {from: user1}).should.be.fulfilled;
                 p2.should.be.bignumber.equal(tiers[i].rate);
 
                 // previous cap + 1000 eth raised, 1000 wei purchase
-                var p13 = await this.tiersContract.calculateTokens(kiloEth, tiers[i - 1].amountCap.add(kiloEth), {from: user1}).should.be.fulfilled;
+                var p13 = await this.helpersContract.calculateTokens(kiloEth, tiers[i - 1].amountCap.add(kiloEth), {from: user1}).should.be.fulfilled;
                 p13.should.be.bignumber.equal((tiers[i].rate).mul(kiloEth));
 
                 // previous cap - 1 wei raised, 2 wei purchase
-                var p14 = await this.tiersContract.calculateTokens(2, tiers[i - 1].amountCap.sub(bigOne), {from: user1}).should.be.fulfilled;
+                var p14 = await this.helpersContract.calculateTokens(2, tiers[i - 1].amountCap.sub(bigOne), {from: user1}).should.be.fulfilled;
                 p14.should.be.bignumber.equal((tiers[i - 1].rate).add(tiers[i].rate));
 
                 // previous cap - 1 wei raised, 3KEth + 1 wei purchase
-                var p15 = await this.tiersContract.calculateTokens(h.e2Wei(3).add(bigOne), tiers[i - 1].amountCap.sub(bigOne), {from: user1}).should.be.fulfilled;
+                var p15 = await this.helpersContract.calculateTokens(h.e2Wei(3).add(bigOne), tiers[i - 1].amountCap.sub(bigOne), {from: user1}).should.be.fulfilled;
                 p15.should.be.bignumber.equal((tiers[i - 1].rate).add(tiers[i].rate.mul(h.e2Wei(3))));
             }
         });
@@ -169,8 +169,8 @@ contract('CPCrowdsale', function([owner, wallet, user1, user2, user3, airdropWal
 
         it("sets the tiers correctly", async function() {
             for (var i=0; i < tiers.length; i++) {
-                var c = new h.BigNumber((await this.tiersContract.tierAmountCaps(i)).valueOf());
-                var r = new h.BigNumber((await this.tiersContract.tierRates(i)).valueOf());
+                var c = new h.BigNumber((await this.helpersContract.tierAmountCaps(i)).valueOf());
+                var r = new h.BigNumber((await this.helpersContract.tierRates(i)).valueOf());
                 tiers[i].amountCap.should.be.bignumber.equal(c);
                 tiers[i].rate.should.be.bignumber.equal(r);
             }
