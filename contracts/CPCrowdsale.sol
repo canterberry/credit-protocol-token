@@ -12,16 +12,6 @@ import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
 contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     using SafeMath for uint256;
 
-    uint256 public constant decimals = 18;
-
-    uint256 public nonPublicTokens = 82458667 * (10 ** decimals);
-
-    uint256 public initialAirdropTokens = 5807933 * (10 ** decimals);
-    uint256 public initialAdvisorTokens = 5807933 * (10 ** decimals);
-    uint256 public initialStakingTokens = 11615867 * (10 ** decimals);
-    uint256 public initialPrivateSaleTokens = 36000000 * (10 ** decimals);
-    uint256 public initialDevTokens = nonPublicTokens - (initialAirdropTokens + initialAdvisorTokens + initialStakingTokens + initialPrivateSaleTokens);
-
     DPIcoWhitelist private aw;
     Tiers private at;
     mapping (address => bool) private hasPurchased; // has whitelist address purchased already
@@ -34,11 +24,11 @@ contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
         FinalizableCrowdsale()
         Crowdsale(_startTime, _endTime, 1, _wallet)  // rate is a dummy value; we use tiers instead
     {
-        token.mint(_wallet, initialDevTokens);
-        token.mint(_airdropWallet, initialAirdropTokens);
-        token.mint(_advisorWallet, initialAdvisorTokens);
-        token.mint(_stakingWallet, initialStakingTokens);
-        token.mint(_privateSaleWallet, initialPrivateSaleTokens);
+        token.mint(_wallet, 23226934 * (10 ** 18));
+        token.mint(_airdropWallet, 5807933 * (10 ** 18));
+        token.mint(_advisorWallet, 5807933 * (10 ** 18));
+        token.mint(_stakingWallet, 11615867 * (10 ** 18));
+        token.mint(_privateSaleWallet, 36000000 * (10 ** 18));
 
         aw = DPIcoWhitelist(_whitelistContract);
         require (aw.numUsers() > 0);
