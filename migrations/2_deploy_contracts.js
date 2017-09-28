@@ -1,8 +1,7 @@
 var DPIcoWhitelist = artifacts.require("./DPIcoWhitelist.sol");
 var CPCrowdsale = artifacts.require("./CPCrowdsale.sol");
-var TestSale = artifacts.require("./TestSale.sol");
 
-module.exports = function(deployer, network) {
+module.exports = function(deployer, network, accounts) {
     const october1st1600 = 1506873600;
     const november1st0000 = 1509494400;
 
@@ -30,10 +29,7 @@ module.exports = function(deployer, network) {
     }
 
 
-
-
-
-    if (network == "mainnetTest") {
+    else if (network == "mainnetTest") {
         var twhitelistAddress = "0xdaF5520A1BA8D71CDb81C69c72D736dAb058C602";
 
         const twallet = "0xF617CC9DE7c4392D30dB54D7358719dd22C04eb8";
@@ -42,14 +38,12 @@ module.exports = function(deployer, network) {
         const tstakingWallet = "0x3184d822758787a7fa82B032B678000FAf81FA4C";
         const tprivateSaleWallet = "0x3bd170a319a1096dB90ba271B5266b79Eec6315b";
 
-        const tstartTime = ; //SET THIS
+        const tstartTime = 1506602855; //SET THIS
         const tendTime   = new web3.BigNumber(tstartTime + 30*60); //30 mins
         const twhitelistEndTime = new web3.BigNumber(tstartTime + 10*60); //10 mins
         const topenWhitelistEndTime = new web3.BigNumber(tstartTime + 20*60); //20 mins
-        deployer.deploy(CPCrowdsale, tstartTime, tendTime, twhitelistEndTime, topenWhitelistEndTime, twallet, twhitelistAddress, tairdropWallet, tadvisorWallet, tstakingWallet, tprivateSaleWallet, {gas: 4800000, gasPrice: 21000000000});
+        deployer.deploy(CPCrowdsale, tstartTime, tendTime, twhitelistEndTime, topenWhitelistEndTime, twallet, twhitelistAddress, tairdropWallet, tadvisorWallet, tstakingWallet, tprivateSaleWallet, {gas: 4900000, gasPrice: 21000000000});
     }
-
-
 
 
 
@@ -66,7 +60,7 @@ module.exports = function(deployer, network) {
         const ropstenEndTime   = november1st0000;
         const ropstenWhitelistEndTime = new web3.BigNumber(ropstenStartTime + fiveDays);
         const ropstenOpenWhitelistEndTime = new web3.BigNumber(ropstenStartTime + sevenDays);
-        deployer.deploy(CPCrowdsale, ropstenStartTime, ropstenEndTime, ropstenWhitelistEndTime, ropstenOpenWhitelistEndTime, ropstenWallet, ropstenWhitelistAddress, ropstenAirdropWallet, ropstenAdvisorWallet, ropstenStakingWallet, ropstenPrivateSaleWallet);
+        deployer.deploy(CPCrowdsale, ropstenStartTime, ropstenEndTime, ropstenWhitelistEndTime, ropstenOpenWhitelistEndTime, ropstenWallet, ropstenWhitelistAddress, ropstenAirdropWallet, ropstenAdvisorWallet, ropstenStakingWallet, ropstenPrivateSaleWallet, {gas: 6000000, gasPrice: 21000000000});
     }
 
     else if (network === "console") {
@@ -95,7 +89,7 @@ module.exports = function(deployer, network) {
         var whitelist;
         deployer.deploy(DPIcoWhitelist, {from: web3.eth.accounts[0]}).then(function() {
                 return DPIcoWhitelist.deployed();
-        })
+        });
 
         //     .then(whitelistContract => {
         //     whitelist = whitelistContract;
