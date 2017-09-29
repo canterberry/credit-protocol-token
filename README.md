@@ -1,5 +1,11 @@
 # CPToken Crowdsale (BCPT)
 
+## Build steps
+- In Remix
+- 0.4.15 compiler, strict
+- optimizations disabled
+- 5720431 gas estimate
+
 ## Audit Reports
 - [01 First Audit Report](audit01.md)
 - [02 Second Audit Report](audit02.md)
