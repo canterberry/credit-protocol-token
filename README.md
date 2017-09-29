@@ -1,7 +1,9 @@
 # CPToken Crowdsale (BCPT)
 
 latest: 
-- 0x87e91b1e225f09208d011dd95bddf033f255756b14e99b2072cfb55ff84aa6e5
+- tx: ```0x87e91b1e225f09208d011dd95bddf033f255756b14e99b2072cfb55ff84aa6e5```
+- contract: ```0x255d597951300a913d5e327c6e92ddc05923febe```
+- token:    ```0x1c4481750daa5ff521a2a7490d9981ed46465dbd```
 ## Build steps
 - In Remix
 - 0.4.15 compiler, strict
