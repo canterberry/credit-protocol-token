@@ -1,6 +1,6 @@
 pragma solidity 0.4.15;
 
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import './SafeMath.sol';
 
 contract Tiers {
   using SafeMath for uint256;

@@ -3,11 +3,11 @@ pragma solidity 0.4.15;
 import './CPToken.sol';
 import './DPIcoWhitelist.sol';
 import './Tiers.sol';
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'zeppelin-solidity/contracts/crowdsale/CappedCrowdsale.sol';
-import 'zeppelin-solidity/contracts/crowdsale/FinalizableCrowdsale.sol';
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
-import 'zeppelin-solidity/contracts/lifecycle/Pausable.sol';
+import './SafeMath.sol';
+import './CappedCrowdsale.sol';
+import './FinalizableCrowdsale.sol';
+import './Ownable.sol';
+import './Pausable.sol';
 
 contract CPCrowdsale is CappedCrowdsale, FinalizableCrowdsale, Pausable {
     using SafeMath for uint256;
