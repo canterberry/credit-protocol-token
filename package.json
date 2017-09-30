@@ -1,5 +1,5 @@
 {
-  "name": "ico-contracts",
+  "name": "tce-contracts",
   "version": "1.0.0",
   "description": "`0xdaF5520A1BA8D71CDb81C69c72D736dAb058C602`",
   "main": "truffle.js",
