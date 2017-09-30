@@ -5,7 +5,7 @@ latest:
 - contract: ```0x255d597951300a913d5e327c6e92ddc05923febe```
 - token:    ```0x1c4481750daa5ff521a2a7490d9981ed46465dbd```
 ## Build steps
-- In Remix
+- In Remix, open ```FlatCPSale.sol``` from this repo
 - 0.4.15 compiler, strict
 - optimizations enabled
 - 3737591 gas estimate
