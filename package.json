@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "`0xdaF5520A1BA8D71CDb81C69c72D736dAb058C602`",
   "main": "truffle.js",
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
